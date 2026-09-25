@@ -8,13 +8,13 @@ import {
   Trash2, 
   X, 
   FileText,
+  FileDown,
   Copy,
-  Check,
-  Tag
+  Check
 } from 'lucide-react';
 import { SKKegiatan } from '../types';
 import { PORTAL_LINKS } from '../data/seedData';
-import { generateNomorSK, formatTanggalIndonesia } from '../utils/formatters';
+import { generateNomorSK, formatTanggalIndonesia, compareNomorUrut, computeNextNomorUrut } from '../utils/formatters';
 import { exportTableToCSV } from '../utils/storage';
 
 interface SKKegiatanViewProps {
@@ -34,25 +34,26 @@ export const SKKegiatanView: React.FC<SKKegiatanViewProps> = ({
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
   const nextNomorUrut = useMemo(() => {
-    const maxNo = skList.reduce((max, item) => (item.nomorUrut > max ? item.nomorUrut : max), 0);
-    return maxNo + 1;
+    return computeNextNomorUrut(skList);
   }, [skList]);
 
   const [formData, setFormData] = useState({
-    nomorUrut: nextNomorUrut,
+    nomorUrut: String(nextNomorUrut),
     tanggal: new Date().toISOString().slice(0, 10),
     uraian: '',
     subFungsi: 'UMUM' as SKKegiatan['subFungsi'],
-    petugasHonor: 'Ada / Upload'
+    wordUrl: '',
+    pdfUrl: ''
   });
 
   const handleOpenModal = () => {
     setFormData({
-      nomorUrut: nextNomorUrut,
+      nomorUrut: String(computeNextNomorUrut(skList)),
       tanggal: new Date().toISOString().slice(0, 10),
       uraian: '',
       subFungsi: 'UMUM',
-      petugasHonor: 'Ada / Upload'
+      wordUrl: '',
+      pdfUrl: ''
     });
     setIsModalOpen(true);
   };
@@ -74,7 +75,8 @@ export const SKKegiatanView: React.FC<SKKegiatanViewProps> = ({
       tanggal: formatTanggalIndonesia(formData.tanggal),
       uraian: formData.uraian.trim(),
       subFungsi: formData.subFungsi,
-      petugasHonor: formData.petugasHonor,
+      wordUrl: formData.wordUrl.trim() || undefined,
+      pdfUrl: formData.pdfUrl.trim() || undefined,
       createdAt: new Date().toISOString()
     };
 
@@ -89,16 +91,18 @@ export const SKKegiatanView: React.FC<SKKegiatanViewProps> = ({
   };
 
   const filteredList = useMemo(() => {
-    return skList.filter((item) => {
-      const matchSearch =
-        item.nomorSK.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.uraian.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.subFungsi.toLowerCase().includes(searchTerm.toLowerCase());
+    return skList
+      .filter((item) => {
+        const matchSearch =
+          item.nomorSK.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          item.uraian.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          item.subFungsi.toLowerCase().includes(searchTerm.toLowerCase());
 
-      const matchFungsi = filterSubFungsi === 'Semua' || item.subFungsi === filterSubFungsi;
+        const matchFungsi = filterSubFungsi === 'Semua' || item.subFungsi === filterSubFungsi;
 
-      return matchSearch && matchFungsi;
-    });
+        return matchSearch && matchFungsi;
+      })
+      .sort((a, b) => compareNomorUrut(a.nomorUrut, b.nomorUrut));
   }, [skList, searchTerm, filterSubFungsi]);
 
   const handleExportCSV = () => {
@@ -108,7 +112,8 @@ export const SKKegiatanView: React.FC<SKKegiatanViewProps> = ({
       Tanggal: s.tanggal,
       Uraian: s.uraian,
       Sub_Fungsi: s.subFungsi,
-      Petugas_Honor: s.petugasHonor || ''
+      Link_Word: s.wordUrl || '',
+      Link_PDF: s.pdfUrl || ''
     }));
     exportTableToCSV(`SK_Kegiatan_BPS_Selayar_${new Date().toISOString().slice(0, 10)}`, rows);
   };
@@ -133,7 +138,7 @@ export const SKKegiatanView: React.FC<SKKegiatanViewProps> = ({
               Daftar SK Kegiatan Kantor
             </h2>
             <p className="text-xs sm:text-sm text-slate-500">
-              Registrasi dan penomoran Surat Keputusan (SK) Kepala BPS, tim kerja, dan penetapan honor kegiatan.
+              Registrasi dan penomoran Surat Keputusan (SK) Kepala BPS, tim kerja, dan dokumen SK (Word & PDF).
             </p>
           </div>
         </div>
@@ -182,7 +187,7 @@ export const SKKegiatanView: React.FC<SKKegiatanViewProps> = ({
 
         {/* Sub/Fungsi filter */}
         <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl text-[11px] sm:text-xs font-semibold overflow-x-auto w-full md:w-auto max-w-full">
-          {['Semua', 'UMUM', 'IPDS', 'DISTRIBUSI', 'SOSIAL', 'PRODUKSI', 'NERWILCA'].map((f) => (
+          {['Semua', 'UMUM', 'IPDS', 'DISTRIBUSI', 'SOSIAL', 'PRODUKSI', 'NERWILIS'].map((f) => (
             <button
               key={f}
               onClick={() => setFilterSubFungsi(f)}
@@ -243,13 +248,34 @@ export const SKKegiatanView: React.FC<SKKegiatanViewProps> = ({
                   {item.uraian}
                 </p>
 
-                {item.petugasHonor && (
-                  <div className="mt-2 text-[11px] text-slate-600 bg-slate-50 rounded-xl p-2.5 border border-slate-100 flex items-center gap-1.5">
-                    <Tag className="w-3.5 h-3.5 text-amber-600 shrink-0" />
-                    <span className="text-slate-500">Honor / Petugas: </span>
-                    <span className="font-semibold text-slate-800">{item.petugasHonor}</span>
-                  </div>
-                )}
+                {/* Berkas SK Word & PDF */}
+                <div className="mt-2.5 flex items-center gap-2 flex-wrap">
+                  {item.wordUrl && (
+                    <a
+                      href={item.wordUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 transition-colors"
+                    >
+                      <FileText className="w-3.5 h-3.5 text-blue-600" />
+                      <span>Dokumen Word</span>
+                    </a>
+                  )}
+                  {item.pdfUrl && (
+                    <a
+                      href={item.pdfUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 transition-colors"
+                    >
+                      <FileDown className="w-3.5 h-3.5 text-rose-600" />
+                      <span>Dokumen PDF</span>
+                    </a>
+                  )}
+                  {!item.wordUrl && !item.pdfUrl && (
+                    <span className="text-[11px] text-slate-400 italic">Belum ada tautan berkas</span>
+                  )}
+                </div>
               </div>
 
               {/* Card Actions */}
@@ -289,7 +315,7 @@ export const SKKegiatanView: React.FC<SKKegiatanViewProps> = ({
                 <th className="py-3.5 px-4 w-32">Tanggal</th>
                 <th className="py-3.5 px-4">Uraian SK Kegiatan</th>
                 <th className="py-3.5 px-4 w-32">Sub / Fungsi</th>
-                <th className="py-3.5 px-4 w-36">Petugas / Honor</th>
+                <th className="py-3.5 px-4 w-48">Berkas SK (Word & PDF)</th>
                 <th className="py-3.5 px-4 w-20 text-center">Aksi</th>
               </tr>
             </thead>
@@ -333,8 +359,38 @@ export const SKKegiatanView: React.FC<SKKegiatanViewProps> = ({
                         {item.subFungsi}
                       </span>
                     </td>
-                    <td className="py-3 px-4 text-slate-600 text-xs">
-                      {item.petugasHonor || '-'}
+                    <td className="py-3 px-4">
+                      <div className="flex items-center gap-2">
+                        {item.wordUrl ? (
+                          <a
+                            href={item.wordUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 transition-colors shadow-2xs"
+                            title="Buka / Unduh Dokumen Word"
+                          >
+                            <FileText className="w-3.5 h-3.5 text-blue-600" />
+                            <span>Word</span>
+                          </a>
+                        ) : (
+                          <span className="text-slate-300 text-xs">-</span>
+                        )}
+
+                        {item.pdfUrl ? (
+                          <a
+                            href={item.pdfUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 transition-colors shadow-2xs"
+                            title="Buka / Unduh Dokumen PDF"
+                          >
+                            <FileDown className="w-3.5 h-3.5 text-rose-600" />
+                            <span>PDF</span>
+                          </a>
+                        ) : (
+                          <span className="text-slate-300 text-xs">-</span>
+                        )}
+                      </div>
                     </td>
                     <td className="py-3 px-4 text-center">
                       <button
@@ -365,7 +421,7 @@ export const SKKegiatanView: React.FC<SKKegiatanViewProps> = ({
       {/* Modal Buat SK Baru */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-fadeIn">
-          <div className="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl border border-slate-200">
+          <div className="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl border border-slate-200 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-4 mb-4 border-b border-slate-100">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-amber-50 border border-amber-100 flex items-center justify-center text-amber-600">
@@ -397,12 +453,14 @@ export const SKKegiatanView: React.FC<SKKegiatanViewProps> = ({
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Nomor Urut</label>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    Nomor Urut <span className="text-[10px] text-slate-400 font-normal">(bisa sisip misal 20.1)</span>
+                  </label>
                   <input
-                    type="number"
-                    min={1}
+                    type="text"
                     value={formData.nomorUrut}
-                    onChange={(e) => setFormData({ ...formData, nomorUrut: parseInt(e.target.value) || 1 })}
+                    onChange={(e) => setFormData({ ...formData, nomorUrut: e.target.value })}
+                    placeholder="Contoh: 15 atau 15.1"
                     className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm font-mono focus:ring-2 focus:ring-amber-500 focus:outline-hidden"
                     required
                   />
@@ -432,7 +490,7 @@ export const SKKegiatanView: React.FC<SKKegiatanViewProps> = ({
                   <option value="DISTRIBUSI">DISTRIBUSI (Harga, Pariwisata, Transportasi)</option>
                   <option value="SOSIAL">SOSIAL (Kependudukan, Susenas, Sakernas)</option>
                   <option value="PRODUKSI">PRODUKSI (Pertanian, Industri, Konstruksi)</option>
-                  <option value="NERWILCA">NERWILCA (Neraca Wilayah & Analisis Statistik)</option>
+                  <option value="NERWILIS">NERWILIS (Neraca Wilayah & Analisis Statistik)</option>
                 </select>
               </div>
 
@@ -450,15 +508,32 @@ export const SKKegiatanView: React.FC<SKKegiatanViewProps> = ({
                 />
               </div>
 
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Petugas / Honor</label>
-                <input
-                  type="text"
-                  placeholder="Contoh: Terlampir / Ada Honor"
-                  value={formData.petugasHonor}
-                  onChange={(e) => setFormData({ ...formData, petugasHonor: e.target.value })}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-amber-500 focus:outline-hidden"
-                />
+              <div className="space-y-3 pt-1">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    Link Berkas Word (.docx) <span className="text-slate-400 font-normal">(opsional)</span>
+                  </label>
+                  <input
+                    type="url"
+                    placeholder="https://docs.google.com/document/... atau Google Drive"
+                    value={formData.wordUrl}
+                    onChange={(e) => setFormData({ ...formData, wordUrl: e.target.value })}
+                    className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-amber-500 focus:outline-hidden"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    Link Berkas PDF <span className="text-slate-400 font-normal">(opsional)</span>
+                  </label>
+                  <input
+                    type="url"
+                    placeholder="https://drive.google.com/file/... atau PDF Link"
+                    value={formData.pdfUrl}
+                    onChange={(e) => setFormData({ ...formData, pdfUrl: e.target.value })}
+                    className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-amber-500 focus:outline-hidden"
+                  />
+                </div>
               </div>
 
               <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">

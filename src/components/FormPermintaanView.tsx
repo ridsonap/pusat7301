@@ -8,13 +8,11 @@ import {
   Trash2, 
   X, 
   Copy, 
-  Check,
-  Printer,
-  DollarSign
+  Check
 } from 'lucide-react';
 import { FormPermintaan } from '../types';
 import { PORTAL_LINKS } from '../data/seedData';
-import { generateNomorFormPermintaan, formatTanggalIndonesia, formatRupiah } from '../utils/formatters';
+import { generateNomorFormPermintaan, formatTanggalIndonesia, formatRupiah, compareNomorUrut, computeNextNomorUrut } from '../utils/formatters';
 import { exportTableToCSV } from '../utils/storage';
 
 interface FormPermintaanViewProps {
@@ -34,16 +32,14 @@ export const FormPermintaanView: React.FC<FormPermintaanViewProps> = ({
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
   const nextNomorUrut = useMemo(() => {
-    const maxNo = formList.reduce((max, item) => (item.nomorUrut > max ? item.nomorUrut : max), 0);
-    return maxNo + 1;
+    return computeNextNomorUrut(formList);
   }, [formList]);
 
   const [formData, setFormData] = useState({
-    nomorUrut: nextNomorUrut,
+    nomorUrut: String(nextNomorUrut),
     tanggal: new Date().toISOString().slice(0, 10),
     tipeForm: 'Belanja Bahan' as FormPermintaan['tipeForm'],
     perihal: '',
-    keterangan: '',
     pemohon: '',
     estimasiBiaya: 0,
     status: 'Diajukan' as FormPermintaan['status']
@@ -51,11 +47,10 @@ export const FormPermintaanView: React.FC<FormPermintaanViewProps> = ({
 
   const handleOpenModal = () => {
     setFormData({
-      nomorUrut: nextNomorUrut,
+      nomorUrut: String(computeNextNomorUrut(formList)),
       tanggal: new Date().toISOString().slice(0, 10),
       tipeForm: 'Belanja Bahan',
       perihal: '',
-      keterangan: '',
       pemohon: '',
       estimasiBiaya: 0,
       status: 'Diajukan'
@@ -80,7 +75,6 @@ export const FormPermintaanView: React.FC<FormPermintaanViewProps> = ({
       tipeForm: formData.tipeForm,
       nomorForm: nomorForm,
       perihal: formData.perihal.trim(),
-      keterangan: formData.keterangan.trim(),
       pemohon: formData.pemohon.trim(),
       estimasiBiaya: formData.estimasiBiaya || undefined,
       status: formData.status,
@@ -98,16 +92,18 @@ export const FormPermintaanView: React.FC<FormPermintaanViewProps> = ({
   };
 
   const filteredList = useMemo(() => {
-    return formList.filter((item) => {
-      const matchSearch =
-        item.nomorForm.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.perihal.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (item.keterangan && item.keterangan.toLowerCase().includes(searchTerm.toLowerCase()));
+    return formList
+      .filter((item) => {
+        const matchSearch =
+          item.nomorForm.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          item.perihal.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          (item.pemohon && item.pemohon.toLowerCase().includes(searchTerm.toLowerCase()));
 
-      const matchTipe = filterTipe === 'Semua' || item.tipeForm === filterTipe;
+        const matchTipe = filterTipe === 'Semua' || item.tipeForm === filterTipe;
 
-      return matchSearch && matchTipe;
-    });
+        return matchSearch && matchTipe;
+      })
+      .sort((a, b) => compareNomorUrut(a.nomorUrut, b.nomorUrut));
   }, [formList, searchTerm, filterTipe]);
 
   const handleExportCSV = () => {
@@ -117,7 +113,8 @@ export const FormPermintaanView: React.FC<FormPermintaanViewProps> = ({
       Tipe_Form: s.tipeForm,
       Nomor_Form: s.nomorForm,
       Perihal: s.perihal,
-      Keterangan: s.keterangan || ''
+      Pemohon: s.pemohon || '',
+      Estimasi_Biaya: s.estimasiBiaya || 0
     }));
     exportTableToCSV(`Form_Permintaan_BPS_Selayar_${new Date().toISOString().slice(0, 10)}`, rows);
   };
@@ -134,15 +131,15 @@ export const FormPermintaanView: React.FC<FormPermintaanViewProps> = ({
           <div>
             <div className="flex items-center gap-2">
               <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-indigo-700 bg-indigo-50 px-2.5 py-0.5 rounded-full border border-indigo-200">
-                Pengadaan & Anggaran
+                Formulir Anggaran
               </span>
               <span className="text-[10px] sm:text-xs font-semibold text-slate-500">BPS Kab. Kepulauan Selayar</span>
             </div>
             <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight mt-1">
-              Form Permintaan Belanja & Honor
+              Form Permintaan Belanja Kantor
             </h2>
             <p className="text-xs sm:text-sm text-slate-500">
-              Pengajuan kebutuhan bahan habis pakai (521211), belanja barang operasional, ATK, dan honor kegiatan.
+              Registrasi nomor form permintaan kebutuhan belanja bahan, barang, jasa dan operasional kantor.
             </p>
           </div>
         </div>
@@ -171,31 +168,31 @@ export const FormPermintaanView: React.FC<FormPermintaanViewProps> = ({
             className="flex-1 sm:flex-none justify-center px-4 py-2 sm:py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs sm:text-sm font-bold flex items-center gap-2 shadow-xs hover:shadow-md transition-all active:scale-95"
           >
             <Plus className="w-4 h-4" />
-            <span>Buat Permintaan</span>
+            <span>Buat Form Permintaan</span>
           </button>
         </div>
       </div>
 
-      {/* Filter and Search */}
+      {/* Filter and Search Bar */}
       <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs flex flex-col md:flex-row gap-3 items-center justify-between">
         <div className="relative w-full md:w-80">
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
           <input
             type="text"
-            placeholder="Cari nomor form atau perihal..."
+            placeholder="Cari nomor atau perihal permintaan..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm focus:outline-hidden focus:ring-2 focus:ring-indigo-500 transition-all"
           />
         </div>
 
-        {/* Tipe Form */}
-        <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl text-[11px] sm:text-xs font-semibold overflow-x-auto w-full md:w-auto max-w-full">
-          {['Semua', 'Belanja Bahan', 'Belanja Barang', 'Jasa Profesi'].map((t) => (
+        {/* Tipe filter */}
+        <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl text-[11px] sm:text-xs font-semibold overflow-x-auto w-full md:w-auto">
+          {['Semua', 'Belanja Bahan', 'Belanja Barang', 'Jasa Profesi', 'Perjalanan Dinas'].map((t) => (
             <button
               key={t}
               onClick={() => setFilterTipe(t)}
-              className={`px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-lg transition-all shrink-0 whitespace-nowrap ${
+              className={`px-3 py-1.5 rounded-lg transition-all shrink-0 whitespace-nowrap ${
                 filterTipe === t ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600 hover:text-slate-900'
               }`}
             >
@@ -252,7 +249,7 @@ export const FormPermintaanView: React.FC<FormPermintaanViewProps> = ({
                   {item.perihal}
                 </p>
 
-                {(item.keterangan || item.pemohon || item.estimasiBiaya) && (
+                {(item.pemohon || item.estimasiBiaya) && (
                   <div className="mt-2 text-[11px] text-slate-600 bg-slate-50 rounded-xl p-2.5 border border-slate-100 space-y-1">
                     {item.pemohon && (
                       <div>
@@ -266,12 +263,6 @@ export const FormPermintaanView: React.FC<FormPermintaanViewProps> = ({
                         <span className="font-semibold text-emerald-700">{formatRupiah(item.estimasiBiaya)}</span>
                       </div>
                     ) : null}
-                    {item.keterangan && (
-                      <div>
-                        <span className="text-slate-400 font-medium">Rincian: </span>
-                        <span className="text-slate-600">{item.keterangan}</span>
-                      </div>
-                    )}
                   </div>
                 )}
               </div>
@@ -312,15 +303,14 @@ export const FormPermintaanView: React.FC<FormPermintaanViewProps> = ({
                 <th className="py-3.5 px-4 w-32">Tanggal</th>
                 <th className="py-3.5 px-4 w-36">Tipe Form</th>
                 <th className="py-3.5 px-4 w-52">Nomor Form Permintaan</th>
-                <th className="py-3.5 px-4">Perihal / Kebutuhan</th>
-                <th className="py-3.5 px-4">Keterangan / Rincian</th>
+                <th className="py-3.5 px-4">Perihal Permintaan</th>
                 <th className="py-3.5 px-4 w-20 text-center">Aksi</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {filteredList.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="py-12 text-center text-slate-400">
+                  <td colSpan={6} className="py-12 text-center text-slate-400">
                     Tidak ada form permintaan yang sesuai filter.
                   </td>
                 </tr>
@@ -356,9 +346,6 @@ export const FormPermintaanView: React.FC<FormPermintaanViewProps> = ({
                     </td>
                     <td className="py-3 px-4 text-slate-800 font-medium">
                       {item.perihal}
-                    </td>
-                    <td className="py-3 px-4 text-slate-500 text-xs">
-                      <div className="line-clamp-2">{item.keterangan || '-'}</div>
                     </td>
                     <td className="py-3 px-4 text-center">
                       <button
@@ -421,12 +408,14 @@ export const FormPermintaanView: React.FC<FormPermintaanViewProps> = ({
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Nomor Urut</label>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    Nomor Urut <span className="text-[10px] text-slate-400 font-normal">(bisa 20.1)</span>
+                  </label>
                   <input
-                    type="number"
-                    min={1}
+                    type="text"
                     value={formData.nomorUrut}
-                    onChange={(e) => setFormData({ ...formData, nomorUrut: parseInt(e.target.value) || 1 })}
+                    onChange={(e) => setFormData({ ...formData, nomorUrut: e.target.value })}
+                    placeholder="Contoh: 10 atau 10.1"
                     className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm font-mono focus:ring-2 focus:ring-indigo-500 focus:outline-hidden"
                     required
                   />
@@ -464,25 +453,12 @@ export const FormPermintaanView: React.FC<FormPermintaanViewProps> = ({
                   Perihal Permintaan <span className="text-rose-500">*</span>
                 </label>
                 <textarea
-                  rows={2}
+                  rows={3}
                   placeholder="Contoh: Honor Pendataan Ubinan Subround 1 Tahun 2026"
                   value={formData.perihal}
                   onChange={(e) => setFormData({ ...formData, perihal: e.target.value })}
                   className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-hidden"
                   required
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
-                  Keterangan / Rincian Kebutuhan
-                </label>
-                <textarea
-                  rows={2}
-                  placeholder="Contoh: Belanja bahan habis pakai untuk 10 paket dokumen survei lapangan"
-                  value={formData.keterangan}
-                  onChange={(e) => setFormData({ ...formData, keterangan: e.target.value })}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-hidden"
                 />
               </div>
 

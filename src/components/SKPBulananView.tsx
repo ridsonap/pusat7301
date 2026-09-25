@@ -4,15 +4,11 @@ import {
   Search, 
   Download, 
   ExternalLink, 
-  Edit3, 
-  CheckCircle2, 
-  X, 
-  UploadCloud, 
-  Award,
-  Filter
+  UploadCloud,
+  FileSpreadsheet
 } from 'lucide-react';
 import { SKPItem, Pegawai } from '../types';
-import { PORTAL_LINKS } from '../data/seedData';
+import { PORTAL_LINKS, getSkpDriveUploadUrl } from '../data/seedData';
 import { exportTableToCSV } from '../utils/storage';
 
 interface SKPBulananViewProps {
@@ -23,12 +19,9 @@ interface SKPBulananViewProps {
 
 export const SKPBulananView: React.FC<SKPBulananViewProps> = ({
   skpList,
-  pegawaiList,
-  onUpdateSKP
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [activeTriwulan, setActiveTriwulan] = useState<'triwulan1' | 'triwulan2' | 'triwulan3' | 'triwulan4' | 'tahunan'>('triwulan1');
-  const [editingSKP, setEditingSKP] = useState<SKPItem | null>(null);
 
   const triwulanLabels = {
     triwulan1: 'Triwulan I (Jan - Mar)',
@@ -45,14 +38,6 @@ export const SKPBulananView: React.FC<SKPBulananViewProps> = ({
     );
   }, [skpList, searchTerm]);
 
-  const handleSaveEdit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (editingSKP) {
-      onUpdateSKP(editingSKP);
-      setEditingSKP(null);
-    }
-  };
-
   const handleExportCSV = () => {
     const rows = filteredList.map((item, idx) => ({
       No: idx + 1,
@@ -60,13 +45,15 @@ export const SKPBulananView: React.FC<SKPBulananViewProps> = ({
       Jabatan: item.jabatan,
       TW1_Hasil: item.triwulan1.hasil,
       TW1_Perilaku: item.triwulan1.perilaku,
-      TW1_Predikat: item.triwulan1.predikat,
-      TW2_Predikat: item.triwulan2.predikat,
-      TW3_Predikat: item.triwulan3.predikat,
-      TW4_Predikat: item.triwulan4.predikat,
-      Tahunan_Predikat: item.tahunan.predikat
+      TW2_Hasil: item.triwulan2.hasil,
+      TW2_Perilaku: item.triwulan2.perilaku,
+      TW3_Hasil: item.triwulan3.hasil,
+      TW3_Perilaku: item.triwulan3.perilaku,
+      TW4_Hasil: item.triwulan4.hasil,
+      TW4_Perilaku: item.triwulan4.perilaku,
+      Link_Upload_Drive: getSkpDriveUploadUrl(item.nama)
     }));
-    exportTableToCSV(`SKP_Bulanan_BPS_Selayar_${new Date().toISOString().slice(0, 10)}`, rows);
+    exportTableToCSV(`SKP_Triwulanan_BPS_Selayar_${new Date().toISOString().slice(0, 10)}`, rows);
   };
 
   return (
@@ -86,23 +73,24 @@ export const SKPBulananView: React.FC<SKPBulananViewProps> = ({
               <span className="text-[10px] sm:text-xs font-semibold text-slate-500">CKP, SAKIP & Zona Integritas (ZI)</span>
             </div>
             <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight mt-1">
-              SKP & Penilaian Kinerja Bulanan
+              SKP & Penilaian Kinerja Triwulanan
             </h2>
             <p className="text-xs sm:text-sm text-slate-500">
-              Evaluasi kinerja triwulanan dan tahunan pegawai BPS Kabupaten Kepulauan Selayar.
+              Evaluasi kinerja triwulanan dan tautan langsung upload berkas SKP ke folder Google Drive tiap pegawai.
             </p>
           </div>
         </div>
 
         <div className="flex flex-wrap items-center gap-2 sm:gap-3">
           <a
-            href={PORTAL_LINKS.skpBulanan}
+            href={PORTAL_LINKS.skpDriveUploadSpreadsheet}
             target="_blank"
             rel="noopener noreferrer"
-            className="px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs sm:text-sm font-semibold flex items-center gap-1.5 sm:gap-2 transition-colors"
+            className="px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl border border-emerald-200 bg-emerald-50/70 hover:bg-emerald-100 text-emerald-800 text-xs sm:text-sm font-semibold flex items-center gap-1.5 transition-colors shadow-2xs"
+            title="Buka Spreadsheet Master SKP di Google Sheets"
           >
-            <ExternalLink className="w-4 h-4 text-slate-400" />
-            <span>Sheet</span>
+            <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
+            <span>Sheet SKP</span>
           </a>
 
           <button
@@ -159,6 +147,7 @@ export const SKPBulananView: React.FC<SKPBulananViewProps> = ({
         ) : (
           filteredList.map((item, idx) => {
             const evalData = item[activeTriwulan];
+            const driveUrl = getSkpDriveUploadUrl(item.nama);
             return (
               <div
                 key={item.id}
@@ -169,16 +158,8 @@ export const SKPBulananView: React.FC<SKPBulananViewProps> = ({
                   <span className="w-6 h-6 rounded-full bg-slate-100 text-slate-700 text-[11px] font-mono font-bold flex items-center justify-center">
                     {idx + 1}
                   </span>
-                  <span
-                    className={`inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
-                      evalData.predikat === 'Sangat Baik'
-                        ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
-                        : evalData.predikat === 'Baik'
-                        ? 'bg-blue-100 text-blue-800 border border-blue-300'
-                        : 'bg-amber-100 text-amber-800 border border-amber-300'
-                    }`}
-                  >
-                    {evalData.predikat}
+                  <span className="text-[10px] font-semibold text-slate-400">
+                    {triwulanLabels[activeTriwulan]}
                   </span>
                 </div>
 
@@ -203,15 +184,18 @@ export const SKPBulananView: React.FC<SKPBulananViewProps> = ({
                   </div>
                 </div>
 
-                {/* Card Action */}
+                {/* Card Action: Upload SKP Drive */}
                 <div className="pt-2 border-t border-slate-100">
-                  <button
-                    onClick={() => setEditingSKP(item)}
-                    className="w-full py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-colors border border-rose-200"
+                  <a
+                    href={driveUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-colors border border-emerald-200"
                   >
-                    <Edit3 className="w-3.5 h-3.5" />
-                    <span>Update Penilaian Kinerja</span>
-                  </button>
+                    <UploadCloud className="w-4 h-4 text-emerald-600" />
+                    <span>Upload SKP ke Google Drive</span>
+                    <ExternalLink className="w-3 h-3 text-emerald-500" />
+                  </a>
                 </div>
               </div>
             );
@@ -228,16 +212,15 @@ export const SKPBulananView: React.FC<SKPBulananViewProps> = ({
                 <th className="py-3.5 px-4 w-14 text-center">No</th>
                 <th className="py-3.5 px-4">Nama Pegawai</th>
                 <th className="py-3.5 px-4">Jabatan</th>
-                <th className="py-3.5 px-4 w-44">Hasil Kerja ({triwulanLabels[activeTriwulan]})</th>
-                <th className="py-3.5 px-4 w-44">Perilaku Kerja</th>
-                <th className="py-3.5 px-4 w-36 text-center">Predikat Kinerja</th>
-                <th className="py-3.5 px-4 w-28 text-center">Aksi / Edit</th>
+                <th className="py-3.5 px-4 w-48">Hasil Kerja ({triwulanLabels[activeTriwulan]})</th>
+                <th className="py-3.5 px-4 w-48">Perilaku Kerja</th>
+                <th className="py-3.5 px-4 w-48 text-center">Upload SKP (Google Drive)</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {filteredList.map((item, idx) => {
                 const evalData = item[activeTriwulan];
-                const isGood = evalData.predikat === 'Baik' || evalData.predikat === 'Sangat Baik';
+                const driveUrl = getSkpDriveUploadUrl(item.nama);
                 return (
                   <tr key={item.id} className="hover:bg-slate-50/80 transition-colors">
                     <td className="py-3 px-4 font-mono font-bold text-center text-slate-500">
@@ -250,36 +233,27 @@ export const SKPBulananView: React.FC<SKPBulananViewProps> = ({
                       {item.jabatan}
                     </td>
                     <td className="py-3 px-4 text-slate-700">
-                      <span className="px-2 py-0.5 rounded-md bg-slate-100 font-medium text-xs">
+                      <span className="px-2.5 py-1 rounded-lg bg-slate-100 font-medium text-xs">
                         {evalData.hasil}
                       </span>
                     </td>
                     <td className="py-3 px-4 text-slate-700">
-                      <span className="px-2 py-0.5 rounded-md bg-slate-100 font-medium text-xs">
+                      <span className="px-2.5 py-1 rounded-lg bg-slate-100 font-medium text-xs">
                         {evalData.perilaku}
                       </span>
                     </td>
                     <td className="py-3 px-4 text-center">
-                      <span
-                        className={`inline-block px-3 py-1 rounded-full text-xs font-bold ${
-                          evalData.predikat === 'Sangat Baik'
-                            ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
-                            : evalData.predikat === 'Baik'
-                            ? 'bg-blue-100 text-blue-800 border border-blue-300'
-                            : 'bg-amber-100 text-amber-800 border border-amber-300'
-                        }`}
+                      <a
+                        href={driveUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 rounded-xl font-bold text-xs transition-colors shadow-2xs"
+                        title={`Buka Folder Upload Drive ${item.nama}`}
                       >
-                        {evalData.predikat}
-                      </span>
-                    </td>
-                    <td className="py-3 px-4 text-center">
-                      <button
-                        onClick={() => setEditingSKP(item)}
-                        className="px-2.5 py-1.5 bg-slate-100 hover:bg-rose-50 hover:text-rose-600 text-slate-700 rounded-lg text-xs font-bold flex items-center gap-1 mx-auto transition-colors"
-                      >
-                        <Edit3 className="w-3.5 h-3.5" />
-                        <span>Update</span>
-                      </button>
+                        <UploadCloud className="w-3.5 h-3.5 text-emerald-600" />
+                        <span>Upload Drive</span>
+                        <ExternalLink className="w-3 h-3 text-emerald-500" />
+                      </a>
                     </td>
                   </tr>
                 );
@@ -293,126 +267,6 @@ export const SKPBulananView: React.FC<SKPBulananViewProps> = ({
           <span className="font-semibold text-slate-700">Periode: {triwulanLabels[activeTriwulan]}</span>
         </div>
       </div>
-
-      {/* Edit Modal */}
-      {editingSKP && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-fadeIn">
-          <div className="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl border border-slate-200">
-            <div className="flex items-center justify-between pb-4 mb-4 border-b border-slate-100">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-rose-50 border border-rose-100 flex items-center justify-center text-rose-600">
-                  <Award className="w-5 h-5" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-black text-slate-900">Update Nilai SKP Pegawai</h3>
-                  <p className="text-xs text-slate-500">{editingSKP.nama}</p>
-                </div>
-              </div>
-              <button
-                onClick={() => setEditingSKP(null)}
-                className="text-slate-400 hover:text-slate-600 p-2 rounded-xl hover:bg-slate-100"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <form onSubmit={handleSaveEdit} className="space-y-4">
-              
-              <div className="bg-rose-50/70 border border-rose-200 p-3 rounded-xl text-xs font-semibold text-rose-900">
-                Periode Penilaian: {triwulanLabels[activeTriwulan]}
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
-                  Hasil Kerja
-                </label>
-                <select
-                  value={editingSKP[activeTriwulan].hasil}
-                  onChange={(e) => {
-                    setEditingSKP({
-                      ...editingSKP,
-                      [activeTriwulan]: {
-                        ...editingSKP[activeTriwulan],
-                        hasil: e.target.value
-                      }
-                    });
-                  }}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-rose-500 focus:outline-hidden"
-                >
-                  <option value="Diatas Ekspektasi">Diatas Ekspektasi</option>
-                  <option value="Sesuai Ekspektasi">Sesuai Ekspektasi</option>
-                  <option value="Dibawah Ekspektasi">Dibawah Ekspektasi</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
-                  Perilaku Kerja (Core Values BerAKHLAK)
-                </label>
-                <select
-                  value={editingSKP[activeTriwulan].perilaku}
-                  onChange={(e) => {
-                    setEditingSKP({
-                      ...editingSKP,
-                      [activeTriwulan]: {
-                        ...editingSKP[activeTriwulan],
-                        perilaku: e.target.value
-                      }
-                    });
-                  }}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-rose-500 focus:outline-hidden"
-                >
-                  <option value="Diatas Ekspektasi">Diatas Ekspektasi</option>
-                  <option value="Sesuai Ekspektasi">Sesuai Ekspektasi</option>
-                  <option value="Dibawah Ekspektasi">Dibawah Ekspektasi</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
-                  Predikat Kinerja Akhir
-                </label>
-                <select
-                  value={editingSKP[activeTriwulan].predikat}
-                  onChange={(e) => {
-                    setEditingSKP({
-                      ...editingSKP,
-                      [activeTriwulan]: {
-                        ...editingSKP[activeTriwulan],
-                        predikat: e.target.value
-                      }
-                    });
-                  }}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm font-bold focus:ring-2 focus:ring-rose-500 focus:outline-hidden"
-                >
-                  <option value="Sangat Baik">Sangat Baik</option>
-                  <option value="Baik">Baik</option>
-                  <option value="Butuh Perbaikan">Butuh Perbaikan</option>
-                  <option value="Kurang">Kurang</option>
-                  <option value="Sangat Kurang">Sangat Kurang</option>
-                </select>
-              </div>
-
-              <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
-                <button
-                  type="button"
-                  onClick={() => setEditingSKP(null)}
-                  className="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-100 text-xs sm:text-sm font-semibold transition-colors"
-                >
-                  Batal
-                </button>
-                <button
-                  type="submit"
-                  className="px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs sm:text-sm font-bold shadow-md transition-all active:scale-95"
-                >
-                  Simpan Nilai SKP
-                </button>
-              </div>
-
-            </form>
-          </div>
-        </div>
-      )}
 
     </div>
   );

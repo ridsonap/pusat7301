@@ -3,19 +3,17 @@ import {
   Mail, 
   Plus, 
   Search, 
-  Filter, 
   Download, 
   Copy, 
   Check, 
   ExternalLink, 
   Trash2, 
   X,
-  FileSpreadsheet,
-  ArrowUpDown
+  FileSpreadsheet
 } from 'lucide-react';
-import { SuratUmum, KodeKlasifikasi } from '../types';
+import { SuratUmum } from '../types';
 import { KODE_KLASIFIKASI_BPS, PORTAL_LINKS } from '../data/seedData';
-import { generateNomorSuratUmum, formatTanggalIndonesia } from '../utils/formatters';
+import { generateNomorSuratUmum, formatTanggalIndonesia, compareNomorUrut, computeNextNomorUrut } from '../utils/formatters';
 import { exportTableToCSV } from '../utils/storage';
 
 interface SuratUmumViewProps {
@@ -35,14 +33,12 @@ export const SuratUmumView: React.FC<SuratUmumViewProps> = ({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
-  // New letter form states
   const nextNomorUrut = useMemo(() => {
-    const maxNo = suratList.reduce((max, item) => (item.nomorUrut > max ? item.nomorUrut : max), 0);
-    return maxNo + 1;
+    return computeNextNomorUrut(suratList);
   }, [suratList]);
 
   const [formData, setFormData] = useState({
-    nomorUrut: nextNomorUrut,
+    nomorUrut: String(nextNomorUrut),
     tanggal: new Date().toISOString().slice(0, 10),
     jenisSurat: 'Internal' as 'Internal' | 'Eksternal',
     tujuan: '',
@@ -53,7 +49,7 @@ export const SuratUmumView: React.FC<SuratUmumViewProps> = ({
 
   const handleOpenModal = () => {
     setFormData({
-      nomorUrut: nextNomorUrut,
+      nomorUrut: String(computeNextNomorUrut(suratList)),
       tanggal: new Date().toISOString().slice(0, 10),
       jenisSurat: 'Internal',
       tujuan: '',
@@ -98,17 +94,19 @@ export const SuratUmumView: React.FC<SuratUmumViewProps> = ({
   };
 
   const filteredList = useMemo(() => {
-    return suratList.filter((item) => {
-      const matchSearch =
-        item.nomorSurat.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.perihal.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.tujuan.toLowerCase().includes(searchTerm.toLowerCase());
+    return suratList
+      .filter((item) => {
+        const matchSearch =
+          item.nomorSurat.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          item.perihal.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          item.tujuan.toLowerCase().includes(searchTerm.toLowerCase());
 
-      const matchJenis = filterJenis === 'Semua' || item.jenisSurat === filterJenis;
-      const matchKlasifikasi = filterKlasifikasi === 'Semua' || item.kodeKlasifikasi === filterKlasifikasi;
+        const matchJenis = filterJenis === 'Semua' || item.jenisSurat === filterJenis;
+        const matchKlasifikasi = filterKlasifikasi === 'Semua' || item.kodeKlasifikasi === filterKlasifikasi;
 
-      return matchSearch && matchJenis && matchKlasifikasi;
-    });
+        return matchSearch && matchJenis && matchKlasifikasi;
+      })
+      .sort((a, b) => compareNomorUrut(a.nomorUrut, b.nomorUrut));
   }, [suratList, searchTerm, filterJenis, filterKlasifikasi]);
 
   const handleExportCSV = () => {
@@ -150,6 +148,29 @@ export const SuratUmumView: React.FC<SuratUmumViewProps> = ({
         </div>
 
         <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+          {/* Klasifikasi Sheet Buttons */}
+          <a
+            href={PORTAL_LINKS.klasifikasiSubstantif}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="px-3 py-2 sm:py-2.5 rounded-xl border border-sky-200 bg-sky-50/70 hover:bg-sky-100 text-sky-800 text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-2xs"
+            title="Daftar Kode Klasifikasi Substantif (Google Sheet)"
+          >
+            <FileSpreadsheet className="w-4 h-4 text-sky-600" />
+            <span>Klasifikasi Substantif</span>
+          </a>
+
+          <a
+            href={PORTAL_LINKS.klasifikasiFasilitatif}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="px-3 py-2 sm:py-2.5 rounded-xl border border-indigo-200 bg-indigo-50/70 hover:bg-indigo-100 text-indigo-800 text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-2xs"
+            title="Daftar Kode Klasifikasi Fasilitatif (Google Sheet)"
+          >
+            <FileSpreadsheet className="w-4 h-4 text-indigo-600" />
+            <span>Klasifikasi Fasilitatif</span>
+          </a>
+
           <a
             href={PORTAL_LINKS.suratUmum}
             target="_blank"
@@ -254,7 +275,7 @@ export const SuratUmumView: React.FC<SuratUmumViewProps> = ({
 
                 <div className="flex items-center gap-1.5">
                   <span
-                    className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                    className={`inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
                       item.jenisSurat === 'Internal'
                         ? 'bg-blue-50 text-blue-700 border border-blue-200'
                         : 'bg-emerald-50 text-emerald-700 border border-emerald-200'
@@ -263,7 +284,7 @@ export const SuratUmumView: React.FC<SuratUmumViewProps> = ({
                     {item.jenisSurat}
                   </span>
                   {item.kodeKlasifikasi && (
-                    <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
+                    <span className="inline-block px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-slate-100 text-slate-600 border border-slate-200">
                       {item.kodeKlasifikasi}
                     </span>
                   )}
@@ -289,37 +310,29 @@ export const SuratUmumView: React.FC<SuratUmumViewProps> = ({
                   {item.perihal}
                 </p>
 
-                <div className="mt-2 text-[11px] text-slate-600 bg-slate-50 rounded-xl p-2.5 border border-slate-100 space-y-1">
-                  <div>
-                    <span className="text-slate-400 font-medium">Tujuan: </span>
-                    <span className="font-semibold text-slate-800">{item.tujuan}</span>
-                  </div>
-                  {item.ringkasan && (
-                    <div>
-                      <span className="text-slate-400 font-medium">Ringkasan: </span>
-                      <span className="text-slate-600">{item.ringkasan}</span>
-                    </div>
-                  )}
+                <div className="mt-2 text-[11px] text-slate-600 bg-slate-50 rounded-xl p-2.5 border border-slate-100">
+                  <span className="text-slate-400 font-medium">Tujuan: </span>
+                  <span className="font-semibold text-slate-800">{item.tujuan}</span>
                 </div>
               </div>
 
-              {/* Card Action */}
-              <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
+              {/* Card Actions */}
+              <div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-2">
                 <button
                   onClick={() => copyToClipboard(item.nomorSurat, item.id)}
-                  className="flex-1 py-1.5 bg-sky-50 hover:bg-sky-100 text-sky-700 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-colors border border-sky-200 mr-2"
+                  className="flex-1 py-1.5 bg-sky-50 hover:bg-sky-100 text-sky-700 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-colors border border-sky-200"
                 >
                   <Copy className="w-3.5 h-3.5" />
-                  <span>{copiedId === item.id ? 'Tersalin!' : 'Salin Nomor'}</span>
+                  <span>{copiedId === item.id ? 'Tersalin!' : 'Salin Nomor Surat'}</span>
                 </button>
                 <button
                   onClick={() => {
-                    if (confirm(`Yakin ingin menghapus surat nomor ${item.nomorSurat}?`)) {
+                    if (confirm(`Yakin ingin menghapus surat ${item.nomorSurat}?`)) {
                       onDeleteSurat(item.id);
                     }
                   }}
                   className="p-2 text-slate-400 hover:text-rose-600 rounded-xl hover:bg-rose-50 border border-slate-100 shrink-0"
-                  title="Hapus Surat"
+                  title="Hapus"
                 >
                   <Trash2 className="w-4 h-4" />
                 </button>
@@ -329,7 +342,7 @@ export const SuratUmumView: React.FC<SuratUmumViewProps> = ({
         )}
       </div>
 
-      {/* Desktop Data Table (hidden md:block) */}
+      {/* Desktop Table View (hidden on mobile, visible on md+) */}
       <div className="hidden md:block bg-white rounded-3xl border border-slate-200 shadow-xs overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs sm:text-sm">
@@ -338,17 +351,18 @@ export const SuratUmumView: React.FC<SuratUmumViewProps> = ({
                 <th className="py-3.5 px-4 w-14 text-center">No</th>
                 <th className="py-3.5 px-4 w-32">Tanggal</th>
                 <th className="py-3.5 px-4 w-28">Jenis</th>
-                <th className="py-3.5 px-4 w-48">Nomor Surat</th>
-                <th className="py-3.5 px-4">Alamat / Tujuan</th>
+                <th className="py-3.5 px-4 w-52">Alamat Tujuan</th>
+                <th className="py-3.5 px-4 w-32">Kode Klas.</th>
+                <th className="py-3.5 px-4 w-60">Nomor Surat</th>
                 <th className="py-3.5 px-4">Perihal</th>
-                <th className="py-3.5 px-4 w-24 text-center">Aksi</th>
+                <th className="py-3.5 px-4 w-20 text-center">Aksi</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {filteredList.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="py-12 text-center text-slate-400">
-                    Tidak ada surat yang sesuai dengan pencarian atau filter.
+                  <td colSpan={8} className="py-12 text-center text-slate-400">
+                    Tidak ada surat keluar yang sesuai dengan pencarian atau filter.
                   </td>
                 </tr>
               ) : (
@@ -371,7 +385,15 @@ export const SuratUmumView: React.FC<SuratUmumViewProps> = ({
                         {item.jenisSurat}
                       </span>
                     </td>
-                    <td className="py-3 px-4 font-mono font-bold text-sky-800 whitespace-nowrap">
+                    <td className="py-3 px-4 text-slate-800 font-medium">
+                      {item.tujuan}
+                    </td>
+                    <td className="py-3 px-4">
+                      <span className="font-mono text-xs font-semibold px-2 py-0.5 bg-slate-100 rounded-md text-slate-700">
+                        {item.kodeKlasifikasi}
+                      </span>
+                    </td>
+                    <td className="py-3 px-4 font-mono font-bold text-sky-900 whitespace-nowrap">
                       <div className="flex items-center gap-1.5">
                         <span>{item.nomorSurat}</span>
                         <button
@@ -387,26 +409,18 @@ export const SuratUmumView: React.FC<SuratUmumViewProps> = ({
                         </button>
                       </div>
                     </td>
-                    <td className="py-3 px-4 font-medium text-slate-800">
-                      {item.tujuan}
-                    </td>
-                    <td className="py-3 px-4 text-slate-700">
-                      <div className="font-medium line-clamp-2">{item.perihal}</div>
-                      {item.kodeKlasifikasi && (
-                        <span className="text-[10px] font-mono text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded-sm mt-0.5 inline-block">
-                          Kode: {item.kodeKlasifikasi}
-                        </span>
-                      )}
+                    <td className="py-3 px-4 text-slate-600">
+                      {item.perihal}
                     </td>
                     <td className="py-3 px-4 text-center">
                       <button
                         onClick={() => {
-                          if (confirm(`Yakin ingin menghapus surat nomor ${item.nomorSurat}?`)) {
+                          if (confirm(`Yakin ingin menghapus surat ${item.nomorSurat}?`)) {
                             onDeleteSurat(item.id);
                           }
                         }}
                         className="text-slate-400 hover:text-rose-600 p-1.5 rounded-lg hover:bg-rose-50 transition-colors"
-                        title="Hapus Surat"
+                        title="Hapus"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -418,17 +432,17 @@ export const SuratUmumView: React.FC<SuratUmumViewProps> = ({
           </table>
         </div>
 
-        {/* Footer info */}
+        {/* Footer Info */}
         <div className="py-3 px-6 bg-slate-50 border-t border-slate-200 text-xs text-slate-500 flex justify-between items-center">
           <span>Menampilkan {filteredList.length} dari {suratList.length} total surat keluar</span>
-          <span className="font-semibold text-slate-700">Satker 7301 Selayar</span>
+          <span className="font-semibold text-slate-700">Satker 7301</span>
         </div>
       </div>
 
       {/* Modal Buat Surat Keluar Baru */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-fadeIn">
-          <div className="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl border border-slate-200">
+          <div className="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl border border-slate-200 max-h-[90vh] overflow-y-auto">
             
             <div className="flex items-center justify-between pb-4 mb-4 border-b border-slate-100">
               <div className="flex items-center gap-3">
@@ -468,13 +482,13 @@ export const SuratUmumView: React.FC<SuratUmumViewProps> = ({
                 {/* Nomor Urut */}
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1">
-                    Nomor Urut
+                    Nomor Urut <span className="text-[10px] text-slate-400 font-normal">(bisa 20.1)</span>
                   </label>
                   <input
-                    type="number"
-                    min={1}
+                    type="text"
                     value={formData.nomorUrut}
-                    onChange={(e) => setFormData({ ...formData, nomorUrut: parseInt(e.target.value) || 1 })}
+                    onChange={(e) => setFormData({ ...formData, nomorUrut: e.target.value })}
+                    placeholder="Contoh: 15 atau 15.1"
                     className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm font-mono focus:ring-2 focus:ring-sky-500 focus:outline-hidden"
                     required
                   />
@@ -520,9 +534,31 @@ export const SuratUmumView: React.FC<SuratUmumViewProps> = ({
 
               {/* Kode Klasifikasi Arsip BPS */}
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
-                  Kode Klasifikasi Arsip
-                </label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-xs font-bold text-slate-700">
+                    Kode Klasifikasi Arsip
+                  </label>
+                  <div className="flex items-center gap-2 text-[10px]">
+                    <span className="text-slate-400">Lihat Sheet:</span>
+                    <a
+                      href={PORTAL_LINKS.klasifikasiSubstantif}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-sky-600 hover:text-sky-800 font-semibold underline flex items-center gap-0.5"
+                    >
+                      Substantif <ExternalLink className="w-2.5 h-2.5 inline" />
+                    </a>
+                    <span className="text-slate-300">|</span>
+                    <a
+                      href={PORTAL_LINKS.klasifikasiFasilitatif}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-indigo-600 hover:text-indigo-800 font-semibold underline flex items-center gap-0.5"
+                    >
+                      Fasilitatif <ExternalLink className="w-2.5 h-2.5 inline" />
+                    </a>
+                  </div>
+                </div>
                 <select
                   value={formData.kodeKlasifikasi}
                   onChange={(e) => setFormData({ ...formData, kodeKlasifikasi: e.target.value })}
@@ -558,7 +594,7 @@ export const SuratUmumView: React.FC<SuratUmumViewProps> = ({
                 </label>
                 <textarea
                   rows={2}
-                  placeholder="Contoh: Undangan Rapat Koordinasi Evaluasi SAKIP Triwulan I"
+                  placeholder="Contoh: Permintaan Rekomendasi Kegiatan Statistik Sektoral Bappeda Kab. Kepulauan Selayar"
                   value={formData.perihal}
                   onChange={(e) => setFormData({ ...formData, perihal: e.target.value })}
                   className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-sky-500 focus:outline-hidden"
@@ -566,7 +602,21 @@ export const SuratUmumView: React.FC<SuratUmumViewProps> = ({
                 />
               </div>
 
-              {/* Action Buttons */}
+              {/* Ringkasan */}
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">
+                  Ringkasan Isi Surat <span className="text-slate-400 font-normal">(opsional)</span>
+                </label>
+                <textarea
+                  rows={2}
+                  placeholder="Ringkasan poin penting isi surat untuk memudahkan pencarian..."
+                  value={formData.ringkasan}
+                  onChange={(e) => setFormData({ ...formData, ringkasan: e.target.value })}
+                  className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-sky-500 focus:outline-hidden"
+                />
+              </div>
+
+              {/* Form Actions */}
               <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
                 <button
                   type="button"
@@ -584,7 +634,6 @@ export const SuratUmumView: React.FC<SuratUmumViewProps> = ({
               </div>
 
             </form>
-
           </div>
         </div>
       )}

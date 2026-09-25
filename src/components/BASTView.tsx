@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 import { BAST } from '../types';
 import { KODE_KLASIFIKASI_BPS, PORTAL_LINKS } from '../data/seedData';
-import { generateNomorBAST, formatTanggalIndonesia } from '../utils/formatters';
+import { generateNomorBAST, formatTanggalIndonesia, compareNomorUrut, computeNextNomorUrut } from '../utils/formatters';
 import { exportTableToCSV } from '../utils/storage';
 
 interface BASTViewProps {
@@ -35,12 +35,11 @@ export const BASTView: React.FC<BASTViewProps> = ({
   const [printingBast, setPrintingBast] = useState<BAST | null>(null);
 
   const nextNomorUrut = useMemo(() => {
-    const maxNo = bastList.reduce((max, item) => (item.nomorUrut > max ? item.nomorUrut : max), 0);
-    return maxNo + 1;
+    return computeNextNomorUrut(bastList);
   }, [bastList]);
 
   const [formData, setFormData] = useState({
-    nomorUrut: nextNomorUrut,
+    nomorUrut: String(nextNomorUrut),
     tanggal: new Date().toISOString().slice(0, 10),
     kodeKlasifikasi: 'VS.330',
     perihal: '',
@@ -51,7 +50,7 @@ export const BASTView: React.FC<BASTViewProps> = ({
 
   const handleOpenModal = () => {
     setFormData({
-      nomorUrut: nextNomorUrut,
+      nomorUrut: String(computeNextNomorUrut(bastList)),
       tanggal: new Date().toISOString().slice(0, 10),
       kodeKlasifikasi: 'VS.330',
       perihal: '',
@@ -95,17 +94,19 @@ export const BASTView: React.FC<BASTViewProps> = ({
   };
 
   const filteredList = useMemo(() => {
-    return bastList.filter((item) => {
-      const matchSearch =
-        item.nomorBAST.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.perihal.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.pihakPertama.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.pihakKedua.toLowerCase().includes(searchTerm.toLowerCase());
+    return bastList
+      .filter((item) => {
+        const matchSearch =
+          item.nomorBAST.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          item.perihal.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          item.pihakPertama.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          item.pihakKedua.toLowerCase().includes(searchTerm.toLowerCase());
 
-      const matchKlasifikasi = filterKlasifikasi === 'Semua' || item.kodeKlasifikasi === filterKlasifikasi;
+        const matchKlasifikasi = filterKlasifikasi === 'Semua' || item.kodeKlasifikasi === filterKlasifikasi;
 
-      return matchSearch && matchKlasifikasi;
-    });
+        return matchSearch && matchKlasifikasi;
+      })
+      .sort((a, b) => compareNomorUrut(a.nomorUrut, b.nomorUrut));
   }, [bastList, searchTerm, filterKlasifikasi]);
 
   const handleExportCSV = () => {
@@ -418,12 +419,14 @@ export const BASTView: React.FC<BASTViewProps> = ({
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Nomor Urut</label>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    Nomor Urut <span className="text-[10px] text-slate-400 font-normal">(bisa 20.1)</span>
+                  </label>
                   <input
-                    type="number"
-                    min={1}
+                    type="text"
                     value={formData.nomorUrut}
-                    onChange={(e) => setFormData({ ...formData, nomorUrut: parseInt(e.target.value) || 1 })}
+                    onChange={(e) => setFormData({ ...formData, nomorUrut: e.target.value })}
+                    placeholder="Contoh: 10 atau 10.1"
                     className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm font-mono focus:ring-2 focus:ring-emerald-500 focus:outline-hidden"
                     required
                   />

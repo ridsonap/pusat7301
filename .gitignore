@@ -28,3 +28,4 @@ dist-ssr
 *.png
 seed_raw.json
 seed_parsed.json
+~$*

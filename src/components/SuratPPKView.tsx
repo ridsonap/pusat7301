@@ -12,7 +12,7 @@ import {
 } from 'lucide-react';
 import { SuratPPK } from '../types';
 import { PORTAL_LINKS } from '../data/seedData';
-import { generateNomorSuratPPK, formatTanggalIndonesia } from '../utils/formatters';
+import { generateNomorSuratPPK, formatTanggalIndonesia, compareNomorUrut, computeNextNomorUrut } from '../utils/formatters';
 import { exportTableToCSV } from '../utils/storage';
 
 interface SuratPPKViewProps {
@@ -32,12 +32,11 @@ export const SuratPPKView: React.FC<SuratPPKViewProps> = ({
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
   const nextNomorUrut = useMemo(() => {
-    const maxNo = ppkList.reduce((max, item) => (item.nomorUrut > max ? item.nomorUrut : max), 0);
-    return maxNo + 1;
+    return computeNextNomorUrut(ppkList);
   }, [ppkList]);
 
   const [formData, setFormData] = useState({
-    nomorUrut: nextNomorUrut,
+    nomorUrut: String(nextNomorUrut),
     tanggal: new Date().toISOString().slice(0, 10),
     jenisSurat: 'Eksternal' as 'Eksternal' | 'Internal',
     tujuan: '',
@@ -47,7 +46,7 @@ export const SuratPPKView: React.FC<SuratPPKViewProps> = ({
 
   const handleOpenModal = () => {
     setFormData({
-      nomorUrut: nextNomorUrut,
+      nomorUrut: String(computeNextNomorUrut(ppkList)),
       tanggal: new Date().toISOString().slice(0, 10),
       jenisSurat: 'Eksternal',
       tujuan: '',
@@ -90,16 +89,18 @@ export const SuratPPKView: React.FC<SuratPPKViewProps> = ({
   };
 
   const filteredList = useMemo(() => {
-    return ppkList.filter((item) => {
-      const matchSearch =
-        item.nomorSurat.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.perihal.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.tujuan.toLowerCase().includes(searchTerm.toLowerCase());
+    return ppkList
+      .filter((item) => {
+        const matchSearch =
+          item.nomorSurat.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          item.perihal.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          item.tujuan.toLowerCase().includes(searchTerm.toLowerCase());
 
-      const matchJenis = filterJenis === 'Semua' || item.jenisSurat === filterJenis;
+        const matchJenis = filterJenis === 'Semua' || item.jenisSurat === filterJenis;
 
-      return matchSearch && matchJenis;
-    });
+        return matchSearch && matchJenis;
+      })
+      .sort((a, b) => compareNomorUrut(a.nomorUrut, b.nomorUrut));
   }, [ppkList, searchTerm, filterJenis]);
 
   const handleExportCSV = () => {
@@ -403,12 +404,14 @@ export const SuratPPKView: React.FC<SuratPPKViewProps> = ({
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Nomor Urut</label>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    Nomor Urut <span className="text-[10px] text-slate-400 font-normal">(bisa 20.1)</span>
+                  </label>
                   <input
-                    type="number"
-                    min={1}
+                    type="text"
                     value={formData.nomorUrut}
-                    onChange={(e) => setFormData({ ...formData, nomorUrut: parseInt(e.target.value) || 1 })}
+                    onChange={(e) => setFormData({ ...formData, nomorUrut: e.target.value })}
+                    placeholder="Contoh: 10 atau 10.1"
                     className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm font-mono focus:ring-2 focus:ring-teal-500 focus:outline-hidden"
                     required
                   />

@@ -26,26 +26,40 @@ export const formatRupiah = (val?: number): string => {
   }).format(val);
 };
 
-export const generateNomorSuratUmum = (nomorUrut: number, kodeKlasifikasi: string, tahun: number = new Date().getFullYear()): string => {
+export const generateNomorSuratUmum = (nomorUrut: number | string, kodeKlasifikasi: string, tahun: number = new Date().getFullYear()): string => {
   return `B-${nomorUrut}/7301/${kodeKlasifikasi || 'PR.710'}/${tahun}`;
 };
 
-export const generateNomorSuratTugas = (nomorUrut: number, kodeKlasifikasi: string, tahun: number = new Date().getFullYear()): string => {
+export const generateNomorSuratTugas = (nomorUrut: number | string, kodeKlasifikasi: string, tahun: number = new Date().getFullYear()): string => {
   return `B-${nomorUrut}/7301/${kodeKlasifikasi || 'VS.330'}/${tahun}`;
 };
 
-export const generateNomorSK = (nomorUrut: number, tahun: number = new Date().getFullYear()): string => {
-  return `${nomorUrut.toString().padStart(3, '0')} TAHUN ${tahun}`;
+export const generateNomorSK = (nomorUrut: number | string, tahun: number = new Date().getFullYear()): string => {
+  const s = String(nomorUrut).trim();
+  const padded = /^\d+$/.test(s) ? s.padStart(3, '0') : s;
+  return `${padded} TAHUN ${tahun}`;
 };
 
-export const generateNomorBAST = (nomorUrut: number, kodeKlasifikasi: string, tahun: number = new Date().getFullYear()): string => {
+export const generateNomorBAST = (nomorUrut: number | string, kodeKlasifikasi: string, tahun: number = new Date().getFullYear()): string => {
   return `${nomorUrut}/7301/${kodeKlasifikasi || 'PL.530'}/${tahun}`;
 };
 
-export const generateNomorFormPermintaan = (nomorUrut: number, tahun: number = new Date().getFullYear()): string => {
+export const generateNomorFormPermintaan = (nomorUrut: number | string, tahun: number = new Date().getFullYear()): string => {
   return `B-${nomorUrut}/7301/KU.320/${tahun}`;
 };
 
-export const generateNomorSuratPPK = (nomorUrut: number, kodeKlasifikasi: string = 'PL.300', tahun: number = new Date().getFullYear()): string => {
+export const generateNomorSuratPPK = (nomorUrut: number | string, kodeKlasifikasi: string = 'PL.300', tahun: number = new Date().getFullYear()): string => {
   return `B-${nomorUrut}/7301/${kodeKlasifikasi}/${tahun}`;
+};
+
+export const compareNomorUrut = (a: number | string, b: number | string): number => {
+  return String(a).localeCompare(String(b), undefined, { numeric: true, sensitivity: 'base' });
+};
+
+export const computeNextNomorUrut = (items: { nomorUrut: number | string }[]): number => {
+  const maxNo = items.reduce((max, item) => {
+    const val = parseFloat(String(item.nomorUrut));
+    return (!isNaN(val) && val > max) ? Math.floor(val) : max;
+  }, 0);
+  return maxNo + 1;
 };

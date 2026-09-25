@@ -10,7 +10,50 @@ export const PORTAL_LINKS = {
   "spmDigitalDrive": "https://drive.google.com/drive/folders/1db6vII1ZNw2eIjkAEraf2DfPtZamngHC",
   "suratPPK": "https://docs.google.com/spreadsheets/d/1_T61kej4WpRUG16sRXGWYg4mfcOg-fcgeQrsgeBWKZI/edit?usp=drive_link",
   "skpBulanan": "https://docs.google.com/spreadsheets/d/1UpoN4TbkFhoU8A3LUrhHrDaexxFbtKLt8AQ1Br1-uWY/edit?usp=drivesdk",
-  "databasePegawai": "https://docs.google.com/spreadsheets/d/1hnGYZh1Ng61W8HYfYg5_DRRyvtSedklDSK2b6GEqUZc/edit?usp=sharing"
+  "databasePegawai": "https://docs.google.com/spreadsheets/d/1hnGYZh1Ng61W8HYfYg5_DRRyvtSedklDSK2b6GEqUZc/edit?usp=sharing",
+  "klasifikasiSubstantif": "https://docs.google.com/spreadsheets/d/1NJ9WpVwN8IkCJEkn6r32a2XWpWnZezZX6sNoN3Dt2R4/edit?gid=2093109047#gid=2093109047",
+  "klasifikasiFasilitatif": "https://docs.google.com/spreadsheets/d/1NJ9WpVwN8IkCJEkn6r32a2XWpWnZezZX6sNoN3Dt2R4/edit?gid=1970036418#gid=1970036418",
+  "skpDriveUploadSpreadsheet": "https://docs.google.com/spreadsheets/d/1UpoN4TbkFhoU8A3LUrhHrDaexxFbtKLt8AQ1Br1-uWY/edit?gid=279747431#gid=279747431"
+};
+
+export const SKP_DRIVE_FOLDER_MAP: Record<string, string> = {
+  "Muhammad Ikbal Nur": "https://drive.google.com/drive/folders/1r2rXdZT3uGubMstvxZeRld1rEmOMHg9J?usp=drive_link",
+  "Bustan, S.Sos": "https://drive.google.com/drive/folders/1g1vD9sDhEFGBG2Xkx8dW2vCMXYq65yOA?usp=sharing",
+  "Muhammad Junaid": "https://drive.google.com/drive/folders/1_ezyN94MTUCfGR0T8o6r6GYzq2Exh57K?usp=sharing",
+  "Andi Basri": "https://drive.google.com/drive/folders/1pbg40XhQRFoBjTDhTqUZmk7aQqgMJTxs?usp=sharing",
+  "Sri Wahyuni, S.Si": "https://drive.google.com/drive/folders/17Av7pKGCjpr7vEzAsOqTqMOQb2GzRmCO?usp=sharing",
+  "Nurlaela, S.Sos": "https://drive.google.com/drive/folders/1QMS-l0bJFUtTcm4My0d0sYwdXbVasuHY?usp=sharing",
+  "Zulhan Efendy, S.Sos": "https://drive.google.com/drive/folders/1osy0eF6bXx_YjQ_GgoARFpT1-5cF8kvM?usp=sharing",
+  "Nur Asri, A.Md.Kom.": "https://drive.google.com/drive/folders/10RmG-fWta-LMcE5xYrdTl2AAkw0e7C0K?usp=sharing",
+  "Fakhri Hafidzul Azhar, S.Tr. Stat.": "https://drive.google.com/drive/folders/1TbpY91nZAQ2kmE4-ZsH0nMSa9He7GCtz?usp=sharing",
+  "Konita Iladini, S.Tr. Stat.": "https://drive.google.com/drive/folders/1BXLRPdS5LYs4ZhrJZwW95dMNcM0DBy-8?usp=sharing",
+  "Ilham Aminu Rosyid, S.Tr. Stat.": "https://drive.google.com/drive/folders/1wnOprdjmAVxvMcyUF8gw9rrtIW3qfGNB?usp=sharing",
+  "Nola Ramasentia, S.Tr. Stat.": "https://drive.google.com/drive/folders/1qI11jULV94rEB4VzAIrfpRVWpsF4m_n0?usp=sharing",
+  "Mukhtar, A.Md. Kom.": "https://drive.google.com/drive/folders/1zE-_5VtPfAiespAB4D1jq1gwytftpp-5?usp=sharing",
+  "Ahmad Musawwir, A.Md. Kom.": "https://drive.google.com/drive/folders/11StoDjK04vc6xlbeo6BmPAvrE8-UDDtJ?usp=sharing",
+  "Indawati Amiruddin, A.Md. Stat.": "https://drive.google.com/drive/folders/1cj25HWM0h9m-OBz5SG2YTfafwZ0MPrMz?usp=sharing",
+  "Nurul Izzah Abdullah, A.Md. Stat.": "https://drive.google.com/drive/folders/1Pj63IL6dP7pWejOhNfRGJcs00bsOo5e7?usp=drive_link",
+  "Andi Muhammad Rosyidin Hidayat, S.Tr. Stat.": "https://drive.google.com/drive/folders/1s1qw9jJ2BVwU18V5gdleUcc7UFyb_a5x?usp=sharing",
+  "Ridson Al Farizal P, S.Tr. Stat.": "https://drive.google.com/drive/folders/1y3ViGtgFaQO08u0JDT-Ad-PfMo6ITe1s?usp=drive_link",
+  "Takdir Khauripan, S.Si.": "https://drive.google.com/drive/folders/1dVBr6UxZ8YzR_WhEwmdoNzwPNlI_riZz?usp=sharing",
+  "Aronad Brilliantino Evan Maheswara, S.Tr.Stat.": "https://drive.google.com/drive/folders/1_oorLcFtYykmg8aZ0Goq0I37oCeyAOsA?usp=sharing",
+  "Nur Amalina Fauzi S.Tr.Stat": "https://drive.google.com/drive/folders/1CuQeJtekEIkWpugqllyFCeTk0KTulC-m?usp=sharing",
+  "Apri Wijaya, S.T": "https://drive.google.com/drive/folders/1nPBXvnMsICjADh-hI8Et9U_oCCulLag9?usp=sharing",
+  "Arie Purnama, S.IP": "https://drive.google.com/drive/folders/151n7i9vBlsNA3PhLUaVGtW2tjWPiLEIG?usp=sharing",
+  "Muh. Aszar Siri": "https://drive.google.com/drive/folders/1pbfQQjP5YUUKO15KEgh9P2k6R_OG-eLy?usp=sharing",
+  "Mursalim": "https://drive.google.com/drive/folders/19milt01Tx5CL1brPYy3pdiFDTlu47uUC?usp=sharing"
+};
+
+export const getSkpDriveUploadUrl = (nama: string): string => {
+  if (SKP_DRIVE_FOLDER_MAP[nama]) return SKP_DRIVE_FOLDER_MAP[nama];
+  const clean = nama.toLowerCase().replace(/[^a-z]/g, '');
+  for (const [key, url] of Object.entries(SKP_DRIVE_FOLDER_MAP)) {
+    const cleanKey = key.toLowerCase().replace(/[^a-z]/g, '');
+    if (clean.includes(cleanKey) || cleanKey.includes(clean)) {
+      return url;
+    }
+  }
+  return PORTAL_LINKS.skpDriveUploadSpreadsheet;
 };
 
 export const KODE_KLASIFIKASI_BPS: KodeKlasifikasi[] = [
@@ -872,6 +915,7 @@ export const INITIAL_SK_KEGIATAN: SKKegiatan[] = [
     "tanggal": "05 Januari 2026",
     "uraian": "SK Perubahan User SIMAN BMN 2026",
     "subFungsi": "UMUM",
+    "pdfUrl": "https://drive.google.com/file/d/1n2Aint_YM7u0arv3i-X7mCTi5nVgbz5_/view?usp=sharing",
     "petugasHonor": "Upload"
   },
   {
@@ -881,6 +925,8 @@ export const INITIAL_SK_KEGIATAN: SKKegiatan[] = [
     "tanggal": "05 Januari 2026",
     "uraian": "SK Pengelola SAI dan BMN 2026",
     "subFungsi": "UMUM",
+    "pdfUrl": "https://drive.google.com/file/d/1Rsrguk49giSx3suGoRwqPs-PqLRXKr8I/view?usp=sharing",
+    "wordUrl": "https://docs.google.com/document/d/10mbVBVr7KSkGeFdh8QNCp_wLoP-DUPnX/edit?usp=sharing&ouid=108368367994976358672&rtpof=true&sd=true",
     "petugasHonor": "Upload"
   },
   {
@@ -890,6 +936,8 @@ export const INITIAL_SK_KEGIATAN: SKKegiatan[] = [
     "tanggal": "05 Januari 2026",
     "uraian": "SK Tim Wasdal BMN 2026",
     "subFungsi": "UMUM",
+    "pdfUrl": "https://drive.google.com/file/d/1adghbJ6UgV2JjKNFb6-0EyWIOFV0smpJ/view?usp=sharing",
+    "wordUrl": "https://docs.google.com/document/d/1_4MXwNIy1nPpcWi2kqupKplhQ6t5C6UG/edit?usp=sharing&ouid=108368367994976358672&rtpof=true&sd=true",
     "petugasHonor": "Upload"
   },
   {
@@ -899,6 +947,8 @@ export const INITIAL_SK_KEGIATAN: SKKegiatan[] = [
     "tanggal": "05 Januari 2026",
     "uraian": "SK Transport Tahun 2026",
     "subFungsi": "UMUM",
+    "pdfUrl": "https://drive.google.com/file/d/1VpHqajtYQUF5qsFkfYP6FPbOthm0wotj/view?usp=sharing",
+    "wordUrl": "https://docs.google.com/document/d/1Huk8BvBzxYC9zbY7lmTv7WeWzvyjQvzK/edit?usp=sharing&ouid=108368367994976358672&rtpof=true&sd=true",
     "petugasHonor": "Upload"
   },
   {
@@ -908,6 +958,8 @@ export const INITIAL_SK_KEGIATAN: SKKegiatan[] = [
     "tanggal": "05 Januari 2026",
     "uraian": "SK Pendataan SKTNP Barang dan Jasa Tahun 2026",
     "subFungsi": "NERWILIS",
+    "pdfUrl": "https://drive.google.com/file/d/1ybULM9NsxbP__acETPmVa65RroEYi2HZ/view?usp=sharing",
+    "wordUrl": "https://docs.google.com/document/d/1PU3fpZqQs7a1gs28K-fbw1jEW7HT3lHp/edit?usp=sharing&ouid=108368367994976358672&rtpof=true&sd=true",
     "petugasHonor": "Upload"
   },
   {
@@ -917,6 +969,8 @@ export const INITIAL_SK_KEGIATAN: SKKegiatan[] = [
     "tanggal": "05 Januari 2026",
     "uraian": "SK  Pendataan Survei Ubinan  2026",
     "subFungsi": "PRODUKSI",
+    "pdfUrl": "https://drive.google.com/file/d/1UPD1eHQ4Nynpg5x1lB1_FoF9aqK3Z_ly/view?usp=sharing",
+    "wordUrl": "https://docs.google.com/document/d/16PQ5gjs30roU6AVCg3TwJ0ljQ9E5T0zx/edit?usp=sharing&ouid=108368367994976358672&rtpof=true&sd=true",
     "petugasHonor": "Upload"
   },
   {
@@ -926,6 +980,8 @@ export const INITIAL_SK_KEGIATAN: SKKegiatan[] = [
     "tanggal": "05 Januari 2026",
     "uraian": "SK Tim Pelaksana Survei Pemotongan Ternak 2026",
     "subFungsi": "PRODUKSI",
+    "pdfUrl": "https://drive.google.com/file/d/1j-kkLTxUJBoqqMJtfel2kaLw6imOhZxt/view?usp=sharing",
+    "wordUrl": "https://docs.google.com/document/d/1TlSvWus1cRVmmjofROVwhLmrBKvRpoc9/edit?usp=sharing&ouid=108368367994976358672&rtpof=true&sd=true",
     "petugasHonor": "Upload"
   },
   {
@@ -935,6 +991,8 @@ export const INITIAL_SK_KEGIATAN: SKKegiatan[] = [
     "tanggal": "05 Januari 2026",
     "uraian": "SK Tim Pelaksana KSA 2026",
     "subFungsi": "PRODUKSI",
+    "pdfUrl": "https://drive.google.com/file/d/1oONV2h0XdZDtr7eAdo7czVUrT1E27rSn/view?usp=sharing",
+    "wordUrl": "https://docs.google.com/document/d/1AO-dMGLmSSJ3Ih3SV0IWxhV5J6Fh8cUH/edit?usp=sharing&ouid=108368367994976358672&rtpof=true&sd=true",
     "petugasHonor": "Upload"
   },
   {
@@ -944,6 +1002,8 @@ export const INITIAL_SK_KEGIATAN: SKKegiatan[] = [
     "tanggal": "05 Januari 2026",
     "uraian": "SK Pendataan VIMK Triwulan IV 2025",
     "subFungsi": "PRODUKSI",
+    "pdfUrl": "https://drive.google.com/file/d/1fkD5PdSM7QEYdaQIrQ9nr9LwMcf9LXhN/view?usp=sharing",
+    "wordUrl": "https://docs.google.com/document/d/1rjgQIy-N-ooMlC0RBBTVhlII9aip9Sg5/edit?usp=sharing&ouid=108368367994976358672&rtpof=true&sd=true",
     "petugasHonor": "Upload"
   },
   {
@@ -980,6 +1040,7 @@ export const INITIAL_SK_KEGIATAN: SKKegiatan[] = [
     "tanggal": "05 Januari 2026",
     "uraian": "SK Pendataan Survei Penggalian URT 2026",
     "subFungsi": "PRODUKSI",
+    "wordUrl": "https://docs.google.com/document/d/1K6DzU8q9PuhMORTjzaOPaeZEb8xFs1WM/edit?usp=sharing&ouid=108867984901028014832&rtpof=true&sd=true",
     "petugasHonor": "Upload"
   },
   {
@@ -998,6 +1059,7 @@ export const INITIAL_SK_KEGIATAN: SKKegiatan[] = [
     "tanggal": "05 Januari 2026",
     "uraian": "SK Survei IMK Triwulanan Tahun 2026",
     "subFungsi": "PRODUKSI",
+    "wordUrl": "https://docs.google.com/document/d/1z2ozJ8m_BZJ_XPsdDIEJTEkMuGSB-XIK/edit?usp=sharing&ouid=108867984901028014832&rtpof=true&sd=true",
     "petugasHonor": "Upload"
   },
   {
@@ -1034,6 +1096,7 @@ export const INITIAL_SK_KEGIATAN: SKKegiatan[] = [
     "tanggal": "05 Januari 2026",
     "uraian": "SK Pendataan Survei Perusahaan Kontruksi Triwulanan (SKTR)",
     "subFungsi": "PRODUKSI",
+    "wordUrl": "https://docs.google.com/document/d/11SDzN0NT0NYHL6Jw4bzIWGrRJEtQkrhn/edit?usp=sharing&ouid=108867984901028014832&rtpof=true&sd=true",
     "petugasHonor": "Upload"
   },
   {
@@ -1043,6 +1106,7 @@ export const INITIAL_SK_KEGIATAN: SKKegiatan[] = [
     "tanggal": "05 Januari 2026",
     "uraian": "SK Pendataan Survei Perusahaan Kontruksi Tahunan (SKTH)",
     "subFungsi": "PRODUKSI",
+    "wordUrl": "https://docs.google.com/document/d/1QKtXAX8ElFmUkeYKwiryE_UhwlSMCmgp/edit?usp=sharing&ouid=108867984901028014832&rtpof=true&sd=true",
     "petugasHonor": "Upload"
   },
   {
@@ -1070,6 +1134,8 @@ export const INITIAL_SK_KEGIATAN: SKKegiatan[] = [
     "tanggal": "05 Januari 2026",
     "uraian": "SK Tim SAKIP 2026",
     "subFungsi": "UMUM",
+    "pdfUrl": "https://drive.google.com/file/d/1kb_ICOykL9WxV91t0kh5h7PPgBhCro8c/view?usp=sharing",
+    "wordUrl": "https://docs.google.com/document/d/1582w7aAnm-eEajPVxmJ6yZhC5mRCG1IS/edit?usp=sharing&ouid=108368367994976358672&rtpof=true&sd=true",
     "petugasHonor": "Upload"
   },
   {
@@ -1088,6 +1154,8 @@ export const INITIAL_SK_KEGIATAN: SKKegiatan[] = [
     "tanggal": "05 Januari 2026",
     "uraian": "SK INNAS Susenas Maret dan Seruti Triwulan I Tahun 2026",
     "subFungsi": "SOSIAL",
+    "pdfUrl": "https://drive.google.com/file/d/1LNDKG5r0bM80ASSLjDd7XbA2wcq-Mtxf/view?usp=sharing",
+    "wordUrl": "https://docs.google.com/document/d/1pDkVLxZybComv_uJt7MoxYViIFgI4xnB/edit?usp=sharing&ouid=108368367994976358672&rtpof=true&sd=true",
     "petugasHonor": "Upload"
   },
   {
@@ -1097,6 +1165,8 @@ export const INITIAL_SK_KEGIATAN: SKKegiatan[] = [
     "tanggal": "05 Januari 2026",
     "uraian": "SK Pelatihan Susenas Maret dan Seruti Triwulan I 2026",
     "subFungsi": "SOSIAL",
+    "pdfUrl": "https://drive.google.com/file/d/1IwqBsD2d-RMh7j7nqMGQmyi73GYuPLop/view?usp=sharing",
+    "wordUrl": "https://docs.google.com/document/d/1HE5inCTVvWJEvFl8YoXtsgqDKLWzDzvN/edit?usp=sharing&ouid=108368367994976358672&rtpof=true&sd=true",
     "petugasHonor": "Upload"
   },
   {
@@ -1106,6 +1176,8 @@ export const INITIAL_SK_KEGIATAN: SKKegiatan[] = [
     "tanggal": "05 Januari 2026",
     "uraian": "SK Pendataan Susenas Maret dan Seruti Triwulan I 2026",
     "subFungsi": "SOSIAL",
+    "pdfUrl": "https://drive.google.com/file/d/1o3TbWsN1jsyjYHi4GSkCpVn_BZqB0gxR/view?usp=sharing",
+    "wordUrl": "https://docs.google.com/document/d/1UUnCNF6tp4QHewQFBWAsRWE0LPxN7ojL/edit?usp=sharing&ouid=108368367994976358672&rtpof=true&sd=true",
     "petugasHonor": "Upload"
   },
   {
@@ -1115,6 +1187,8 @@ export const INITIAL_SK_KEGIATAN: SKKegiatan[] = [
     "tanggal": "05 Januari 2026",
     "uraian": "SK Transport Daerah Sulit Susenas Maret dan Seruti Triwulan I 2026",
     "subFungsi": "SOSIAL",
+    "pdfUrl": "https://drive.google.com/file/d/1D2cvt9NRF7cJgM-iWtXja88T7tWBFh4j/view?usp=sharing",
+    "wordUrl": "https://docs.google.com/document/d/1se1XPIU0Oo7J2PviV9vSBNKIejOQnW_l/edit?usp=sharing&ouid=108368367994976358672&rtpof=true&sd=true",
     "petugasHonor": "Upload"
   },
   {
@@ -1124,6 +1198,863 @@ export const INITIAL_SK_KEGIATAN: SKKegiatan[] = [
     "tanggal": "05 Januari 2026",
     "uraian": "SK Pengajar Sakernas Februari Tahun 2026",
     "subFungsi": "SOSIAL",
+    "pdfUrl": "https://drive.google.com/file/d/1dWGzb6y87SQOwZB8IK4JPhKAyAH_rk8s/view?usp=sharing",
+    "wordUrl": "https://docs.google.com/document/d/1foNY3FEdzjLYmO1-cE63k-idoHsNR-_1/edit?usp=sharing&ouid=108368367994976358672&rtpof=true&sd=true",
+    "petugasHonor": "Upload"
+  },
+  {
+    "id": "sk-31",
+    "nomorUrut": 31,
+    "nomorSK": "031 TAHUN 2026",
+    "tanggal": "05 Januari 2026",
+    "uraian": "SK Pelatihan Sakernas Februari 2026",
+    "subFungsi": "SOSIAL",
+    "pdfUrl": "https://drive.google.com/file/d/1H6x4h2NRU5MTXHvCeUu-POX_7AyrXE8U/view?usp=sharing",
+    "wordUrl": "https://docs.google.com/document/d/1oPQmf9p-Cy4dyDZzCs4M0hQy4KiFAJCS/edit?usp=sharing&ouid=108368367994976358672&rtpof=true&sd=true",
+    "petugasHonor": "Upload"
+  },
+  {
+    "id": "sk-32",
+    "nomorUrut": 32,
+    "nomorSK": "032 TAHUN 2026",
+    "tanggal": "05 Januari 2026",
+    "uraian": "SK Pendataan Sakernas Februari 2026",
+    "subFungsi": "SOSIAL",
+    "pdfUrl": "https://drive.google.com/file/d/1nVObYqFqY0LSZ81O47Wpes2eTvCkSfxK/view?usp=sharing",
+    "wordUrl": "https://docs.google.com/document/d/1wTksBsB4DOjXDgjnDpMioBagb_1MriRi/edit?usp=sharing&ouid=108368367994976358672&rtpof=true&sd=true",
+    "petugasHonor": "Upload"
+  },
+  {
+    "id": "sk-33",
+    "nomorUrut": 33,
+    "nomorSK": "033 TAHUN 2026",
+    "tanggal": "05 Januari 2026",
+    "uraian": "SK Transport Daerah Sulit Sakernas Februari 2026",
+    "subFungsi": "SOSIAL",
+    "pdfUrl": "https://drive.google.com/file/d/1pvwC9z8vxExScASadw7ZqCqyGLpKnYWC/view?usp=sharing",
+    "wordUrl": "https://docs.google.com/document/d/1qbDvGwbBvnNmaBEpln0hIuDAwgsSNYXi/edit?usp=sharing&ouid=108368367994976358672&rtpof=true&sd=true",
+    "petugasHonor": "Upload"
+  },
+  {
+    "id": "sk-34",
+    "nomorUrut": 34,
+    "nomorSK": "034 TAHUN 2026",
+    "tanggal": "05 Januari 2026",
+    "uraian": "SK Pendataan SNLIK 2026",
+    "subFungsi": "SOSIAL",
+    "petugasHonor": "Upload"
+  },
+  {
+    "id": "sk-35",
+    "nomorUrut": 35,
+    "nomorSK": "035 TAHUN 2026",
+    "tanggal": "05 Januari 2026",
+    "uraian": "SK Pendataan Survei Tahunan Perusahaan Penggalian Bahan Industri dan Konstruksi",
+    "subFungsi": "PRODUKSI",
+    "petugasHonor": "Upload"
+  },
+  {
+    "id": "sk-36",
+    "nomorUrut": 36,
+    "nomorSK": "036 TAHUN 2026",
+    "tanggal": "05 Januari 2026",
+    "uraian": "SK Updating Perusahaan Pertambangan dan Energi (UDPE)",
+    "subFungsi": "PRODUKSI",
+    "wordUrl": "https://docs.google.com/document/d/1xeB-a8jlkzBdGNxvpn3CCz0UjhMArCew/edit?usp=sharing&ouid=108867984901028014832&rtpof=true&sd=true",
+    "petugasHonor": "Upload"
+  },
+  {
+    "id": "sk-37",
+    "nomorUrut": 37,
+    "nomorSK": "037 TAHUN 2026",
+    "tanggal": "05 Januari 2026",
+    "uraian": "SK Pelatihan KSA dan Ubinan 2026",
+    "subFungsi": "PRODUKSI",
+    "pdfUrl": "https://drive.google.com/file/d/1RGJFe6Asmg6UUQJrlL2UV1d23V44Ureg/view?usp=sharing",
+    "wordUrl": "https://docs.google.com/document/d/1JFZcT2hL8EbkJW9fBmk0VXunVMZqODVg/edit?usp=sharing&ouid=108368367994976358672&rtpof=true&sd=true",
+    "petugasHonor": "Upload"
+  },
+  {
+    "id": "sk-38",
+    "nomorUrut": 38,
+    "nomorSK": "038 TAHUN 2026",
+    "tanggal": "05 Januari 2026",
+    "uraian": "SK Pengajar Pelatihan KSA dan Ubinan 2026",
+    "subFungsi": "PRODUKSI",
+    "pdfUrl": "https://drive.google.com/file/d/1K23YdJZ0E04IRRxBBLSLBaTbQ9eynn2F/view?usp=sharing",
+    "wordUrl": "https://docs.google.com/document/d/1QjfWh8I6ZMy2dpJ3IYyQdhP3zZulXn8v/edit?usp=sharing&ouid=108368367994976358672&rtpof=true&sd=true",
+    "petugasHonor": "Upload"
+  },
+  {
+    "id": "sk-39",
+    "nomorUrut": 39,
+    "nomorSK": "039 TAHUN 2026",
+    "tanggal": "05 Januari 2026",
+    "uraian": "SK Petugas Pengumpulan Data Survei Harga Produsen Tahun 2026",
+    "subFungsi": "DISTRIBUSI",
+    "pdfUrl": "https://drive.google.com/file/d/16RlUvTJvMpCykddZNSnSrk-Nmq7s2s_c/view?usp=sharing",
+    "wordUrl": "https://docs.google.com/document/d/1KsEoPiiYg0W93EYdHx6jeI1SPtVTaqm6/edit?usp=sharing&ouid=108368367994976358672&rtpof=true&sd=true",
+    "petugasHonor": "Upload"
+  },
+  {
+    "id": "sk-40",
+    "nomorUrut": 40,
+    "nomorSK": "040 TAHUN 2026",
+    "tanggal": "05 Januari 2026",
+    "uraian": "SK Petugas Pengumpulan Data Survei Harga Perdagangan Besar Tahun 2026",
+    "subFungsi": "DISTRIBUSI",
+    "pdfUrl": "https://drive.google.com/file/d/1CQkG-5CgQuUKJJw64zAdo_o7Js26LOqR/view?usp=sharing",
+    "wordUrl": "https://docs.google.com/document/d/1_oXSuh4xhfwt5HFvFbfHF7xZq3RxhJWd/edit?usp=sharing&ouid=108368367994976358672&rtpof=true&sd=true",
+    "petugasHonor": "Upload"
+  },
+  {
+    "id": "sk-41",
+    "nomorUrut": 41,
+    "nomorSK": "041 TAHUN 2026",
+    "tanggal": "05 Januari 2026",
+    "uraian": "SK Tim Pelaksana Identifikasi Komoditas Utama SHP",
+    "subFungsi": "DISTRIBUSI",
+    "pdfUrl": "https://drive.google.com/file/d/1CAcXsbXt_dT6VRa0qpK5HMvecucUUsfD/view?usp=sharing",
+    "wordUrl": "https://docs.google.com/document/d/18_uWuwZnWKl1uav2Lrs22lVZpam4JnG3/edit?usp=sharing&ouid=108368367994976358672&rtpof=true&sd=true",
+    "petugasHonor": "Upload"
+  },
+  {
+    "id": "sk-42",
+    "nomorUrut": 42,
+    "nomorSK": "042 TAHUN 2026",
+    "tanggal": "05 Januari 2026",
+    "uraian": "SK Petugas Pengumpulan Data Survei Harga Kemahalan Konstruksi 2026",
+    "subFungsi": "DISTRIBUSI",
+    "pdfUrl": "https://drive.google.com/file/d/14YMj8CtOZ11cGRNaqgLJ4bl-a0rjDB1m/view?usp=sharing",
+    "wordUrl": "https://docs.google.com/document/d/1sj19ARCQAxD3TQigIDkjp2xELYboSGkc/edit?usp=sharing&ouid=108368367994976358672&rtpof=true&sd=true",
+    "petugasHonor": "Upload"
+  },
+  {
+    "id": "sk-43",
+    "nomorUrut": 43,
+    "nomorSK": "043 TAHUN 2026",
+    "tanggal": "05 Januari 2026",
+    "uraian": "SK Petugas Pengumpulan Data Survei VHTS 2026",
+    "subFungsi": "DISTRIBUSI",
+    "pdfUrl": "https://drive.google.com/file/d/1nyjbpFWfKCt_dIGh6EArcBdArDdO6AnE/view?usp=sharing",
+    "wordUrl": "https://docs.google.com/document/d/1n3hvQtiUnGb7lQLe6PUOBXQleezU6iMD/edit?usp=sharing&ouid=108368367994976358672&rtpof=true&sd=true",
+    "petugasHonor": "Upload"
+  },
+  {
+    "id": "sk-44",
+    "nomorUrut": 44,
+    "nomorSK": "044 TAHUN 2026",
+    "tanggal": "05 Januari 2026",
+    "uraian": "SK Petugas Updating Jasa Pariwisata Tahun 2026",
+    "subFungsi": "DISTRIBUSI",
+    "pdfUrl": "https://drive.google.com/file/d/1G0ZxlzdGQ0c1YfMbbGdO8Ga7pb3ySpY1/view?usp=sharing",
+    "wordUrl": "https://docs.google.com/document/d/1w1S5s0N4wY7mmsQNIRHcp_eguiVTqxmC/edit?usp=sharing&ouid=108368367994976358672&rtpof=true&sd=true",
+    "petugasHonor": "Upload"
+  },
+  {
+    "id": "sk-45",
+    "nomorUrut": 45,
+    "nomorSK": "045 TAHUN 2026",
+    "tanggal": "05 Januari 2026",
+    "uraian": "SK TIM Pelaksana Sensus Ekonomi 2026",
+    "subFungsi": "DISTRIBUSI",
+    "pdfUrl": "https://drive.google.com/file/d/1UgB7nCNL6eeI5SmFgd83puvUOrsr9oUR/view?usp=sharing",
+    "wordUrl": "https://docs.google.com/document/d/1rbJEMPzZ25xL29zrpY-Z8pfeAnFYmt1C/edit?usp=sharing&ouid=108867984901028014832&rtpof=true&sd=true",
+    "petugasHonor": "Upload"
+  },
+  {
+    "id": "sk-46",
+    "nomorUrut": 46,
+    "nomorSK": "046 TAHUN 2026",
+    "tanggal": "05 Januari 2026",
+    "uraian": "SK TIM Sekretariat Sensus Ekonomi 2026",
+    "subFungsi": "DISTRIBUSI",
+    "pdfUrl": "https://drive.google.com/file/d/17gpS-5auUtUOFLJlQenWRlljgTWYyiXk/view?usp=sharing",
+    "wordUrl": "https://docs.google.com/document/d/1Z59Z3fwxjwvSfdihnAIp7RYy7p13FJcA/edit?usp=sharing&ouid=108867984901028014832&rtpof=true&sd=true",
+    "petugasHonor": "Upload"
+  },
+  {
+    "id": "sk-47",
+    "nomorUrut": 47,
+    "nomorSK": "047 TAHUN 2026",
+    "tanggal": "02 Februari 2026",
+    "uraian": "SK Pelatihan VIP Hortikultura 2026",
+    "subFungsi": "PRODUKSI",
+    "pdfUrl": "https://drive.google.com/file/d/11EuEs_zAEfkxndK_4PEyqMXxEHrknpap/view?usp=sharing",
+    "wordUrl": "https://docs.google.com/document/d/1yLUYYY18JixXr7mhYuYSgwuVJ4k4Gg4f/edit?usp=sharing&ouid=108867984901028014832&rtpof=true&sd=true",
+    "petugasHonor": "Upload"
+  },
+  {
+    "id": "sk-48",
+    "nomorUrut": 48,
+    "nomorSK": "048 TAHUN 2026",
+    "tanggal": "02 Februari 2026",
+    "uraian": "SK Pengajar Pelatihan VIP Hortikultura 2026",
+    "subFungsi": "PRODUKSI",
+    "pdfUrl": "https://drive.google.com/file/d/1XqkdhUEY6kctBV194ZIqmDFq4Wg-d_-5/view?usp=sharing",
+    "wordUrl": "https://docs.google.com/document/d/1uMh51sJ4iKFBKJ9s0o8lPWT6asH0QPIH/edit?usp=sharing&ouid=108867984901028014832&rtpof=true&sd=true",
+    "petugasHonor": "Upload"
+  },
+  {
+    "id": "sk-49",
+    "nomorUrut": 49,
+    "nomorSK": "049 TAHUN 2026",
+    "tanggal": "02 Februari 2026",
+    "uraian": "SK INNAS Survei Harga Perdagangan  Besar Tahun 2026",
+    "subFungsi": "DISTRIBUSI",
+    "pdfUrl": "https://drive.google.com/file/d/1s19gEbPu6oWgjRm6ZAFhvD4qe4LPMCpv/view?usp=sharing",
+    "wordUrl": "https://docs.google.com/document/d/1w0M554Ox2YQf5NESvV6OWRmrk5d7pmZ6/edit?usp=sharing&ouid=108368367994976358672&rtpof=true&sd=true",
+    "petugasHonor": "Upload"
+  },
+  {
+    "id": "sk-50",
+    "nomorUrut": 50,
+    "nomorSK": "050 TAHUN 2026",
+    "tanggal": "02 Februari 2026",
+    "uraian": "SK Pelatihan Petugas Survei Harga Perdagangan  Besar Tahun 2026",
+    "subFungsi": "DISTRIBUSI",
+    "pdfUrl": "https://drive.google.com/file/d/1I6L0miWstVudrJsaL4-iPQkR2_i_CNFV/view?usp=sharing",
+    "wordUrl": "https://docs.google.com/document/d/18ZxW6-vg4HEC5-GdRg3rMnjBRSFMEcJv/edit?usp=sharing&ouid=108368367994976358672&rtpof=true&sd=true",
+    "petugasHonor": "Upload"
+  },
+  {
+    "id": "sk-51",
+    "nomorUrut": 51,
+    "nomorSK": "051 TAHUN 2026",
+    "tanggal": "02 Februari 2026",
+    "uraian": "SK Pelatihan Petugas Komoditas Strategis Perkebunan  2026",
+    "subFungsi": "PRODUKSI",
+    "pdfUrl": "https://drive.google.com/file/d/1Lmq4dSqCpbb6m99wcSiGeUp2hQraTRSG/view?usp=sharing",
+    "wordUrl": "https://docs.google.com/document/d/1yOEqMUtYUF7p-GAswo3jhazQLB5ss7HP/edit?usp=sharing&ouid=108867984901028014832&rtpof=true&sd=true",
+    "petugasHonor": "Upload"
+  },
+  {
+    "id": "sk-52",
+    "nomorUrut": 52,
+    "nomorSK": "052 TAHUN 2026",
+    "tanggal": "02 Februari 2026",
+    "uraian": "SK Pengajar Komoditas Strategis Perkebunan 2026",
+    "subFungsi": "PRODUKSI",
+    "pdfUrl": "https://drive.google.com/file/d/15k2q7uRI1X1cDmy_pqbakdmWdrGxpn9j/view?usp=sharing",
+    "wordUrl": "https://docs.google.com/document/d/1v-1wRLMW2bhiLNytnllupBRoddo1nSl8/edit?usp=sharing&ouid=108867984901028014832&rtpof=true&sd=true",
+    "petugasHonor": "Upload"
+  },
+  {
+    "id": "sk-53",
+    "nomorUrut": 53,
+    "nomorSK": "053 TAHUN 2026",
+    "tanggal": "02 Februari 2026",
+    "uraian": "SK Pendataan Survei VIP Hortikultura 2026",
+    "subFungsi": "PRODUKSI",
+    "pdfUrl": "https://drive.google.com/file/d/1mC8T0fmtVzcMjKRt-SsDpYK9GS_wmB5n/view?usp=sharing",
+    "wordUrl": "https://docs.google.com/document/d/1hwOyM8JiEGCRUHuFyrTGpxxEub_RW2Wa/edit?usp=sharing&ouid=108867984901028014832&rtpof=true&sd=true",
+    "petugasHonor": "Upload"
+  },
+  {
+    "id": "sk-54",
+    "nomorUrut": 54,
+    "nomorSK": "054 TAHUN 2026",
+    "tanggal": "02 Februari 2026",
+    "uraian": "SK Pendataan Komoditas Strategis Perkebunan 2026",
+    "subFungsi": "PRODUKSI",
+    "pdfUrl": "https://drive.google.com/file/d/1MTFhnponHeubxzcRXnvzMaM8ybC3rYk1/view?usp=sharing",
+    "wordUrl": "https://docs.google.com/document/d/121hGU56ZCPCwifrIWeVBRGKjWIPJaPUc/edit?usp=sharing&ouid=108867984901028014832&rtpof=true&sd=true",
+    "petugasHonor": "Upload"
+  },
+  {
+    "id": "sk-55",
+    "nomorUrut": 55,
+    "nomorSK": "055 TAHUN 2026",
+    "tanggal": "02 Februari 2026",
+    "uraian": "SK Pengolahan Dokumen SUSENAS Maret dan SERUTI TW I 2026",
+    "subFungsi": "IPDS",
+    "pdfUrl": "https://drive.google.com/file/d/1GYp30Cw0UIUnopojJINoEYhsl2SkdLOo/view?usp=sharing",
+    "wordUrl": "https://docs.google.com/document/d/1hQcnPGhr1uxHviNPiDy6wevTcPD6hT93/edit?usp=sharing&ouid=108867984901028014832&rtpof=true&sd=true",
+    "petugasHonor": "Upload"
+  },
+  {
+    "id": "sk-56",
+    "nomorUrut": 56,
+    "nomorSK": "056 TAHUN 2026",
+    "tanggal": "02 Februari 2026",
+    "uraian": "SK Pengolahan Dokumen Seruti Triwulanan Tahun 2026",
+    "subFungsi": "IPDS",
+    "petugasHonor": "Upload"
+  },
+  {
+    "id": "sk-57",
+    "nomorUrut": 57,
+    "nomorSK": "057 TAHUN 2026",
+    "tanggal": "02 Maret 2026",
+    "uraian": "SK PELATIHAN SKTNP 2026",
+    "subFungsi": "NERWILIS",
+    "wordUrl": "https://docs.google.com/document/d/19nj0Ced9CpTeD5oqlU8TjyXK5eaIN3a1/edit?usp=sharing&ouid=108867984901028014832&rtpof=true&sd=true",
+    "petugasHonor": "Upload"
+  },
+  {
+    "id": "sk-58",
+    "nomorUrut": 58,
+    "nomorSK": "058 TAHUN 2026",
+    "tanggal": "02 Maret 2026",
+    "uraian": "SK PELATIHAN SKLNPT 2026",
+    "subFungsi": "NERWILIS",
+    "wordUrl": "https://docs.google.com/document/d/1f7ttYQVzL2EWTAk4jlGZgUohn1liQibE/edit?usp=sharing&ouid=108867984901028014832&rtpof=true&sd=true",
+    "petugasHonor": "Upload"
+  },
+  {
+    "id": "sk-59",
+    "nomorUrut": 59,
+    "nomorSK": "059 TAHUN 2026",
+    "tanggal": "02 Maret 2026",
+    "uraian": "SK Pelatihan Petugas Survei Industri, Pertambangan, Energi dan Konstruksi 2026",
+    "subFungsi": "PRODUKSI",
+    "wordUrl": "https://docs.google.com/document/d/1cKmIp-ZyVzstLoBJOr1P6gjyU_iCNjnL/edit?usp=sharing&ouid=108867984901028014832&rtpof=true&sd=true",
+    "petugasHonor": "Upload"
+  },
+  {
+    "id": "sk-60",
+    "nomorUrut": 60,
+    "nomorSK": "060 TAHUN 2026",
+    "tanggal": "02 Maret 2026",
+    "uraian": "SK Pengajar Pelatihan Petugas Survei Industri, Pertambangan, Energi dan Konstruksi 2026",
+    "subFungsi": "PRODUKSI",
+    "wordUrl": "https://docs.google.com/document/d/1gDksvC3of02jldqVizoXW7IH0xuwnUo0/edit?usp=sharing&ouid=108867984901028014832&rtpof=true&sd=true",
+    "petugasHonor": "Upload"
+  },
+  {
+    "id": "sk-61",
+    "nomorUrut": 61,
+    "nomorSK": "061 TAHUN 2026",
+    "tanggal": "02 Maret 2026",
+    "uraian": "SK Pengajar Pelatihan Petugas SKTNP 2026",
+    "subFungsi": "NERWILIS",
+    "wordUrl": "https://docs.google.com/document/d/1k-GNy0guHSnI37g4GZmZ2HAkbQG6N4rH/edit?usp=sharing&ouid=108867984901028014832&rtpof=true&sd=true",
+    "petugasHonor": "Upload"
+  },
+  {
+    "id": "sk-62",
+    "nomorUrut": 62,
+    "nomorSK": "062 TAHUN 2026",
+    "tanggal": "02 Maret 2026",
+    "uraian": "SK Pengajar Pelatihan Petugas SKLNPT 2026",
+    "subFungsi": "NERWILIS",
+    "wordUrl": "https://docs.google.com/document/d/1VEUlsoqRtvF3inZctXPXp3sLR2P4OYIr/edit?usp=sharing&ouid=108867984901028014832&rtpof=true&sd=true",
+    "petugasHonor": "Upload"
+  },
+  {
+    "id": "sk-63",
+    "nomorUrut": 63,
+    "nomorSK": "063 TAHUN 2026",
+    "tanggal": "02 Maret 2026",
+    "uraian": "SK Pelatihan Survei Penyedian Makanan Minuman (VREST) 2026",
+    "subFungsi": "DISTRIBUSI",
+    "pdfUrl": "https://drive.google.com/file/d/19JR9AaxwVrpYjqCKeAEncjnrSPrhnCM8/view?usp=sharing",
+    "wordUrl": "https://docs.google.com/document/d/1bXRL8twoYnJnjEKNtoP_8t227k1G8sYw/edit?usp=sharing&ouid=108867984901028014832&rtpof=true&sd=true",
+    "petugasHonor": "Upload"
+  },
+  {
+    "id": "sk-64",
+    "nomorUrut": 65,
+    "nomorSK": "064 TAHUN 2026",
+    "tanggal": "02 Maret 2026",
+    "uraian": "SK Pengajar Survei Penyediaan Makanan Minuman (VREST) 2026",
+    "subFungsi": "DISTRIBUSI",
+    "pdfUrl": "https://drive.google.com/file/d/1I2Ti9gwtkbgYStfO2aP_XMN5K2bV_Lej/view?usp=sharing",
+    "wordUrl": "https://docs.google.com/document/d/1eS-03rRrXUf0t3ucfePfyLXorPqgz7U9/edit?usp=sharing&ouid=108867984901028014832&rtpof=true&sd=true",
+    "petugasHonor": "Upload"
+  },
+  {
+    "id": "sk-65",
+    "nomorUrut": 65,
+    "nomorSK": "065 TAHUN 2026",
+    "tanggal": "02 Maret 2026",
+    "uraian": "SK Pendataan Survei Penyediaan Makanan Minuman (VREST)",
+    "subFungsi": "DISTRIBUSI",
+    "pdfUrl": "https://drive.google.com/file/d/1yCPcrCfjYNTdvjiMrudqG5lSsNBnIYrk/view?usp=sharing",
+    "wordUrl": "https://docs.google.com/document/d/1yap4eeTsiGAfo10cqTl5kdA9RqjFquiF/edit?usp=sharing&ouid=108867984901028014832&rtpof=true&sd=true",
+    "petugasHonor": "Upload"
+  },
+  {
+    "id": "sk-66",
+    "nomorUrut": 66,
+    "nomorSK": "066 TAHUN 2026",
+    "tanggal": "02 Maret 2026",
+    "uraian": "SK Pendataan Statistik Keuangan Pemerintah Desa K3",
+    "subFungsi": "DISTRIBUSI",
+    "pdfUrl": "https://drive.google.com/file/d/1UVMlkA0UAPwqwohNAHcO6ylh5HOMk6c8/view?usp=sharing",
+    "wordUrl": "https://docs.google.com/document/d/1TfqjOcjg6nMeDVek9tecHg0C46V7TBbX/edit?usp=sharing&ouid=108867984901028014832&rtpof=true&sd=true",
+    "petugasHonor": "Upload"
+  },
+  {
+    "id": "sk-67",
+    "nomorUrut": 67,
+    "nomorSK": "067 TAHUN 2026",
+    "tanggal": "02 Maret 2026",
+    "uraian": "SK Pendataan Survei Statistik Keuangan BUMD",
+    "subFungsi": "DISTRIBUSI",
+    "pdfUrl": "https://drive.google.com/file/d/17McxJu1INSviNXtAqNhOlj7ePBLKZkWy/view?usp=sharing",
+    "wordUrl": "https://docs.google.com/document/d/1GYm9wa7_yeyayuo8xlDEKKT5yI08jLhV/edit?usp=sharing&ouid=108867984901028014832&rtpof=true&sd=true",
+    "petugasHonor": "Upload"
+  },
+  {
+    "id": "sk-68",
+    "nomorUrut": 68,
+    "nomorSK": "068 TAHUN 2026",
+    "tanggal": "02 Maret 2026",
+    "uraian": "SK Pendataan Survei Lembaga Keuangan Koperasi Simpan Pinjam SLK-KSP",
+    "subFungsi": "DISTRIBUSI",
+    "pdfUrl": "https://drive.google.com/file/d/1ecVOkhMBSyp-J11CEO5nBbrdz5s29XJ8/view?usp=sharing",
+    "wordUrl": "https://docs.google.com/document/d/13EuecfRG_RjN3tWjIZ0vSUpXMoh3x685/edit?usp=sharing&ouid=108867984901028014832&rtpof=true&sd=true",
+    "petugasHonor": "Upload"
+  },
+  {
+    "id": "sk-69",
+    "nomorUrut": 69,
+    "nomorSK": "069 TAHUN 2026",
+    "tanggal": "02 Maret 2026",
+    "uraian": "SK Pendataan Survei Usaha/Perusahaan Penyedia Akomodasi Tahunan ( VTHL)",
+    "subFungsi": "DISTRIBUSI",
+    "pdfUrl": "https://drive.google.com/file/d/1amoXoMnig9fMiCtlR7UWwGxvsU-KMzi4/view?usp=sharing",
+    "wordUrl": "https://docs.google.com/document/d/1nI4IwBXA_1Tw8ouZhhTrCmT_WA_f6FgU/edit?usp=sharing&ouid=108867984901028014832&rtpof=true&sd=true",
+    "petugasHonor": "Upload"
+  },
+  {
+    "id": "sk-70",
+    "nomorUrut": 70,
+    "nomorSK": "070 TAHUN 2026",
+    "tanggal": "02 Maret 2026",
+    "uraian": "SK Pendataan Survei Usaha/Perusahaan Daya Tarik Wisata (VDTW)",
+    "subFungsi": "DISTRIBUSI",
+    "pdfUrl": "https://drive.google.com/file/d/1fFeXBnOrPPMSBWr02kmUaWr-0GAhNXuF/view?usp=sharing",
+    "wordUrl": "https://docs.google.com/document/d/1_L9kt7OKtmCuWZjTxEv8fxnQEzRB586e/edit?usp=sharing&ouid=108867984901028014832&rtpof=true&sd=true",
+    "petugasHonor": "Upload"
+  },
+  {
+    "id": "sk-71",
+    "nomorUrut": 71,
+    "nomorSK": "071 TAHUN 2026",
+    "tanggal": "02 Maret 2026",
+    "uraian": "071 Tahun 2026_SK Pendataan Survei Pola Usaha Non Pertanian (SPUNP)",
+    "subFungsi": "DISTRIBUSI",
+    "pdfUrl": "https://drive.google.com/file/d/1_Amm6-WnnAOeBNEh8muyvFyVf94lFx0h/view?usp=sharing",
+    "wordUrl": "https://docs.google.com/document/d/1EJX2bm1Yi4MGa-0HG55fpHYdfx4aq9BF/edit?usp=sharing&ouid=108867984901028014832&rtpof=true&sd=true",
+    "petugasHonor": "Upload"
+  },
+  {
+    "id": "sk-72",
+    "nomorUrut": 72,
+    "nomorSK": "072 TAHUN 2026",
+    "tanggal": "01 April 2026",
+    "uraian": "SK Pendataan Survei Khusus Triwulanan Neraca Produksi (SKTNP) 2026",
+    "subFungsi": "NERWILIS",
+    "wordUrl": "https://docs.google.com/document/d/1k2hw-F-gLHQqh6Wq3wj7CegPA3djNh21/edit?usp=sharing&ouid=108867984901028014832&rtpof=true&sd=true",
+    "petugasHonor": "Upload"
+  },
+  {
+    "id": "sk-73",
+    "nomorUrut": 73,
+    "nomorSK": "073 TAHUN 2026",
+    "tanggal": "01 April 2026",
+    "uraian": "SK Pendataan Survei Khusus Lembaga Non Profit Triwulanan (SKLNPT) 2026",
+    "subFungsi": "NERWILIS",
+    "wordUrl": "https://docs.google.com/document/d/1e1lCKO2cHiOLXs8oGpF10KwAp_VL5-kP/edit?usp=sharing&ouid=108867984901028014832&rtpof=true&sd=true",
+    "petugasHonor": "Upload"
+  },
+  {
+    "id": "sk-74",
+    "nomorUrut": 74,
+    "nomorSK": "074 TAHUN 2026",
+    "tanggal": "02 April 2026",
+    "uraian": "SK Pengajar Pemutakhiran Data Perkembangan Desa 2026 (PODES 2026)",
+    "subFungsi": "SOSIAL",
+    "wordUrl": "https://docs.google.com/document/d/1CnEDBFgevbOS7THwTSCgmG1pFVqNDHyh/edit?usp=sharing&ouid=108867984901028014832&rtpof=true&sd=true",
+    "petugasHonor": "Upload"
+  },
+  {
+    "id": "sk-75",
+    "nomorUrut": 75,
+    "nomorSK": "075 TAHUN 2026",
+    "tanggal": "02 April 2026",
+    "uraian": "SK Pelatihan Pemutakhiran Data Perkembangan Desa 2026 (PODES 2026)",
+    "subFungsi": "SOSIAL",
+    "wordUrl": "https://docs.google.com/document/d/1Y7i0HWIoe0NKj4iINpB-qkVDRhEwVRFC/edit?usp=sharing&ouid=108867984901028014832&rtpof=true&sd=true",
+    "petugasHonor": "Upload"
+  },
+  {
+    "id": "sk-76",
+    "nomorUrut": 76,
+    "nomorSK": "076 TAHUN 2026",
+    "tanggal": "02 April 2026",
+    "uraian": "SK Pendataan Lapangan Pemutakhiran Data Perkembangan Desa 2026 (PODES 2026)",
+    "subFungsi": "SOSIAL",
+    "wordUrl": "https://docs.google.com/document/d/16vwrqX03KZvQtzn5VhLpQgxKvudUniZ5/edit?usp=sharing&ouid=108867984901028014832&rtpof=true&sd=true",
+    "petugasHonor": "Upload"
+  },
+  {
+    "id": "sk-77",
+    "nomorUrut": 77,
+    "nomorSK": "077 TAHUN 2026",
+    "tanggal": "02 April 2026",
+    "uraian": "SK Transport Daerah Sulit Pemutakhiran Data Perkembangan Desa 2026 (PODES 2026)",
+    "subFungsi": "SOSIAL",
+    "wordUrl": "https://docs.google.com/document/d/1q50zmq5g53_HNH3PdgqYfdI05ExK6XtT/edit?usp=sharing&ouid=108867984901028014832&rtpof=true&sd=true",
+    "petugasHonor": "Upload"
+  },
+  {
+    "id": "sk-78",
+    "nomorUrut": 78,
+    "nomorSK": "078 TAHUN 2026",
+    "tanggal": "02 April 2026",
+    "uraian": "SK Standar Pelayanan Pelayanan Statistik Terpadu",
+    "subFungsi": "IPDS",
+    "petugasHonor": "Upload"
+  },
+  {
+    "id": "sk-79",
+    "nomorUrut": 79,
+    "nomorSK": "079 TAHUN 2026",
+    "tanggal": "02 April 2026",
+    "uraian": "SK Petugas Penanganan Pengaduan  PST 2026",
+    "subFungsi": "IPDS",
+    "petugasHonor": "Upload"
+  },
+  {
+    "id": "sk-80",
+    "nomorUrut": 80,
+    "nomorSK": "080 TAHUN 2026",
+    "tanggal": "02 April 2026",
+    "uraian": "SK Tim Desa Cinta Statistik 2025",
+    "subFungsi": "UMUM",
+    "petugasHonor": "Upload"
+  },
+  {
+    "id": "sk-81",
+    "nomorUrut": 81,
+    "nomorSK": "081 TAHUN 2026",
+    "tanggal": "02 April 2026",
+    "uraian": "SK Panitia Pelelangan Barang 2026",
+    "subFungsi": "UMUM",
+    "wordUrl": "https://docs.google.com/document/d/1Sf45luAOehASug2RbgO5B8af-CTODaov/edit?usp=sharing&ouid=108867984901028014832&rtpof=true&sd=true",
+    "petugasHonor": "Upload"
+  },
+  {
+    "id": "sk-82",
+    "nomorUrut": 82,
+    "nomorSK": "082 TAHUN 2026",
+    "tanggal": "02 April 2026",
+    "uraian": "SK Pejabat Penjual dalam Pelaksanaan Lelang BMN 2025",
+    "subFungsi": "UMUM",
+    "wordUrl": "https://docs.google.com/document/d/15scQUsJNtu5iwzhzyk1HNEOz2-SHtacz/edit?usp=sharing&ouid=108867984901028014832&rtpof=true&sd=true",
+    "petugasHonor": "Upload"
+  },
+  {
+    "id": "sk-83",
+    "nomorUrut": 83,
+    "nomorSK": "083 TAHUN 2026",
+    "tanggal": "02 April 2026",
+    "uraian": "SK Panitia Rekrutmen Petugas (Sensus Ekonomi ) SE 2026",
+    "subFungsi": "UMUM",
+    "wordUrl": "https://docs.google.com/document/d/1mVyqvEqvjVuyS6ZTNX5Hnduof1amtdU_/edit?usp=sharing&ouid=108867984901028014832&rtpof=true&sd=true",
+    "petugasHonor": "Upload"
+  },
+  {
+    "id": "sk-84",
+    "nomorUrut": 84,
+    "nomorSK": "084 TAHUN 2026",
+    "tanggal": "02 April 2026",
+    "uraian": "SK Pelaksana PST",
+    "subFungsi": "IPDS",
+    "petugasHonor": "Upload"
+  },
+  {
+    "id": "sk-85",
+    "nomorUrut": 85,
+    "nomorSK": "085 TAHUN 2026",
+    "tanggal": "02 April 2026",
+    "uraian": "SK Motto dan Budaya PST",
+    "subFungsi": "IPDS",
+    "petugasHonor": "Upload"
+  },
+  {
+    "id": "sk-86",
+    "nomorUrut": 85.1,
+    "nomorSK": "085.1  TAHUN 2026",
+    "tanggal": "11 Mei 2026",
+    "uraian": "SK Pendataan Sakernas Mei 2026",
+    "subFungsi": "SOSIAL",
+    "pdfUrl": "https://drive.google.com/file/d/1t2yYiFLB30I3MUUZdxKy_LZiLhUzAZqy/view?usp=sharing",
+    "wordUrl": "https://docs.google.com/document/d/1-3aDpYQvI6UkLuO5vzDQ2mEqNH7_yMDr/edit?usp=sharing&ouid=108867984901028014832&rtpof=true&sd=true",
+    "petugasHonor": "Upload"
+  },
+  {
+    "id": "sk-87",
+    "nomorUrut": 86,
+    "nomorSK": "086 TAHUN 2026",
+    "tanggal": "11 Mei 2026",
+    "uraian": "SK TIM Pelaksana Sensus Ekonomi 2026 (Perubahan)",
+    "subFungsi": "DISTRIBUSI",
+    "pdfUrl": "https://drive.google.com/file/d/1W58yzyJ9fN9w13vsZ9hw2rsq14GHHjtb/view?usp=sharing",
+    "wordUrl": "https://docs.google.com/document/d/19-aEEq77qoy-__2x39xRdpvMNmLMBXi9/edit?usp=sharing&ouid=108867984901028014832&rtpof=true&sd=true",
+    "petugasHonor": "Upload"
+  },
+  {
+    "id": "sk-88",
+    "nomorUrut": 87,
+    "nomorSK": "087 TAHUN 2026",
+    "tanggal": "11 Mei 2026",
+    "uraian": "SK TIM Sekretariat Sensus Ekonomi 2026 (Perubahan)",
+    "subFungsi": "DISTRIBUSI",
+    "pdfUrl": "https://drive.google.com/file/d/1PZwcf_OFPocPF-y4EPv32-mFnRZQTFLW/view?usp=sharing",
+    "wordUrl": "https://docs.google.com/document/d/18wKijnWER2gcLSoyCUnuwenNVYNEqkRV/edit?usp=sharing&ouid=108867984901028014832&rtpof=true&sd=true",
+    "petugasHonor": "Upload"
+  },
+  {
+    "id": "sk-89",
+    "nomorUrut": 88,
+    "nomorSK": "088 TAHUN 2026",
+    "tanggal": "01 Juni 2026",
+    "uraian": "SK Pelatihan Petugas SE2026",
+    "subFungsi": "DISTRIBUSI",
+    "pdfUrl": "https://drive.google.com/file/d/1F-EL-TSTkw8XLuR7LjLpaG5hmmj460FK/view?usp=sharing",
+    "wordUrl": "https://docs.google.com/document/d/1Ar53Ze6zzNLEpLBsPw9rnNlLVUI1UT0M/edit?usp=sharing&ouid=108867984901028014832&rtpof=true&sd=true",
+    "petugasHonor": "Upload"
+  },
+  {
+    "id": "sk-90",
+    "nomorUrut": 89,
+    "nomorSK": "089 TAHUN 2026",
+    "tanggal": "01 Juni 2026",
+    "uraian": "SK Pengajar Pelatihan Petugas SE2026",
+    "subFungsi": "DISTRIBUSI",
+    "pdfUrl": "https://drive.google.com/file/d/1cbsmq1kx0IVDFVwjurPyLYAWLdym_sAu/view?usp=sharing",
+    "wordUrl": "https://docs.google.com/document/d/1aX8xx0hd6mbI4L-JtoRbdNxkuTLCxzMB/edit?usp=sharing&ouid=108867984901028014832&rtpof=true&sd=true",
+    "petugasHonor": "Upload"
+  },
+  {
+    "id": "sk-91",
+    "nomorUrut": 90,
+    "nomorSK": "090 TAHUN 2026",
+    "tanggal": "01 Juni 2026",
+    "uraian": "SK Transport Daerah Sulit SE2026",
+    "subFungsi": "DISTRIBUSI",
+    "pdfUrl": "https://drive.google.com/file/d/1e-kG0VypeN2kh1FaA55El-3adpwQqbjE/view?usp=sharing",
+    "wordUrl": "https://docs.google.com/document/d/1IE9oTyYSkJoOig-kEDaq4z_vnnbhP-rQ/edit?usp=sharing&ouid=108867984901028014832&rtpof=true&sd=true",
+    "petugasHonor": "Upload"
+  },
+  {
+    "id": "sk-92",
+    "nomorUrut": 91,
+    "nomorSK": "091 TAHUN 2026",
+    "tanggal": "01 Juni 2026",
+    "uraian": "SK Pendataan Seruti Triwulan II 2026",
+    "subFungsi": "SOSIAL",
+    "pdfUrl": "https://drive.google.com/file/d/1rJ98PusVEEZEXCrq4gesA4tG8vgXoY5H/view?usp=sharing",
+    "wordUrl": "https://docs.google.com/document/d/1MR8RkhpkFBMQEe3MeU8yH4iBYYg8cjz4/edit?usp=sharing&ouid=108867984901028014832&rtpof=true&sd=true",
+    "petugasHonor": "Upload"
+  },
+  {
+    "id": "sk-93",
+    "nomorUrut": 92,
+    "nomorSK": "092 TAHUN  2026",
+    "tanggal": "12 Juni 2026",
+    "uraian": "SK Petugas SE2026",
+    "subFungsi": "DISTRIBUSI",
+    "pdfUrl": "https://drive.google.com/file/d/1Be9aWcVtnIJ4Rs-gwDZpDYnqZyWb--cS/view?usp=sharing",
+    "wordUrl": "https://docs.google.com/document/d/1DhhvF9-VGA3rHEwk7eW5b8ShqZRK26E5/edit?usp=sharing&ouid=108867984901028014832&rtpof=true&sd=true",
+    "petugasHonor": "Upload"
+  },
+  {
+    "id": "sk-94",
+    "nomorUrut": 93,
+    "nomorSK": "093 TAHUN 2026",
+    "tanggal": "15 Juni 2026",
+    "uraian": "SK Petugas SE2026 Perubahan Pertama",
+    "subFungsi": "DISTRIBUSI",
+    "pdfUrl": "https://drive.google.com/file/d/1a9zbiBC8EoYoUYlvF8hw0deZPEUFonAA/view?usp=sharing",
+    "wordUrl": "https://docs.google.com/document/d/1JS2NTRFWgE6HDHVlZMCpdulq2Ms56_jK/edit?usp=sharing&ouid=108867984901028014832&rtpof=true&sd=true",
+    "petugasHonor": "Upload"
+  },
+  {
+    "id": "sk-95",
+    "nomorUrut": 94,
+    "nomorSK": "094 TAHUN 2026",
+    "tanggal": "01 Juli 2026",
+    "uraian": "SK Petugas SE2026 Perubahan Kedua",
+    "subFungsi": "DISTRIBUSI",
+    "pdfUrl": "https://drive.google.com/file/d/11Q6iHIiw93npocSnt731EslCGRcHqZI9/view?usp=sharing",
+    "wordUrl": "https://docs.google.com/document/d/1668dyOwCU6aFzQhbaIZsdwFVKqhRoCAf/edit?usp=sharing&ouid=108867984901028014832&rtpof=true&sd=true",
+    "petugasHonor": "Upload"
+  },
+  {
+    "id": "sk-96",
+    "nomorUrut": 95,
+    "nomorSK": "095 TAHUN 2026",
+    "tanggal": "01 Juli 2026",
+    "uraian": "SK Petugas SPUNP 2026 Perubahan",
+    "subFungsi": "DISTRIBUSI",
+    "wordUrl": "https://docs.google.com/document/d/1skxruY5vuYNzIRQNZTT9MGDHFh1Y8XzV/edit?usp=sharing&ouid=108867984901028014832&rtpof=true&sd=true",
+    "petugasHonor": "Upload"
+  },
+  {
+    "id": "sk-97",
+    "nomorUrut": 96,
+    "nomorSK": "096 TAHUN 2026",
+    "tanggal": "10 Juli 2026",
+    "uraian": "SK Pendataan dan Pemutakhiran Sakernas Agustus 2026",
+    "subFungsi": "SOSIAL",
+    "wordUrl": "https://docs.google.com/document/d/1miu08BsejdaVGLfEp_lZGk49LPVOr372/edit?usp=sharing&ouid=108867984901028014832&rtpof=true&sd=true",
+    "petugasHonor": "Upload"
+  },
+  {
+    "id": "sk-98",
+    "nomorUrut": 97,
+    "nomorSK": "097 TAHUN 2026",
+    "tanggal": "10 Juli 2026",
+    "uraian": "SK Pengajar Sakernas Agustus 2026",
+    "subFungsi": "SOSIAL",
+    "wordUrl": "https://docs.google.com/document/d/1NHY-LirZbAE_c5_OXUAd6lcPmQHCR-BA/edit?usp=sharing&ouid=108867984901028014832&rtpof=true&sd=true",
+    "petugasHonor": "Upload"
+  },
+  {
+    "id": "sk-99",
+    "nomorUrut": 98,
+    "nomorSK": "098 TAHUN 2026",
+    "tanggal": "10 Juli 2026",
+    "uraian": "SK Petugas Pengumpulan Data Survei Harga Kemahalan Konstruksi 2026",
+    "subFungsi": "DISTRIBUSI",
+    "wordUrl": "https://docs.google.com/document/d/1M21sOU2fML63uiFYTRGRZ0YiUHV2xuBy/edit?usp=sharing&ouid=108867984901028014832&rtpof=true&sd=truev",
+    "petugasHonor": "Upload"
+  },
+  {
+    "id": "sk-100",
+    "nomorUrut": 99,
+    "nomorSK": "099 TAHUN 2026",
+    "tanggal": "10 Juli 2026",
+    "uraian": "SK Tim Pelaksana KSA 2026 Perubahan",
+    "subFungsi": "PRODUKSI",
+    "pdfUrl": "https://drive.google.com/file/d/1Uur0fTr5Fl0KYCQbEJg2i2rhkB0FMFwY/view?usp=sharing",
+    "wordUrl": "https://docs.google.com/document/d/1YqU7eJjB-oJ5-0GzJKk_Q3ZAtKdezKGG/edit?usp=sharing&ouid=108867984901028014832&rtpof=true&sd=true",
+    "petugasHonor": "Upload"
+  },
+  {
+    "id": "sk-101",
+    "nomorUrut": 100,
+    "nomorSK": "100 TAHUN 2026",
+    "tanggal": "05 Agustus 2026",
+    "uraian": "SK Perubahan Pertama Pengelola Keuangan",
+    "subFungsi": "UMUM",
+    "pdfUrl": "https://drive.google.com/file/d/1r7cPUkNIiNoj-g7FmAOnh0PaY7THI3aF/view?usp=sharing",
+    "wordUrl": "https://docs.google.com/document/d/1Ws09bVnBdzAM_p4tIv9XfU9I87rcOrVX/edit?usp=sharing&ouid=108867984901028014832&rtpof=true&sd=true",
+    "petugasHonor": "Upload"
+  },
+  {
+    "id": "sk-102",
+    "nomorUrut": 101,
+    "nomorSK": "101 TAHUN 2026",
+    "tanggal": "05 Agustus 2026",
+    "uraian": "SK Hukuman Disiplin Pegawai",
+    "subFungsi": "UMUM",
+    "petugasHonor": "Upload"
+  },
+  {
+    "id": "sk-103",
+    "nomorUrut": 102,
+    "nomorSK": "102 TAHUN 2026",
+    "tanggal": "20 Agustus 2026",
+    "uraian": "SK Penetapat IST",
+    "subFungsi": "UMUM",
+    "pdfUrl": "https://drive.google.com/file/d/164MS33_vRDmbFoVdJegvlxo5KMUWDcAP/view?usp=sharing",
+    "wordUrl": "https://docs.google.com/document/d/1GNkFjpU8F3wY7BQilJZLstWJGW3DShK8/edit?usp=sharing&ouid=108867984901028014832&rtpof=true&sd=true",
+    "petugasHonor": "Upload"
+  },
+  {
+    "id": "sk-104",
+    "nomorUrut": 103,
+    "nomorSK": "103 TAHUN 2026",
+    "tanggal": "20 Agustus 2026",
+    "uraian": "SK Petugas SKNP Tahun 2026",
+    "subFungsi": "NERWILIS",
+    "wordUrl": "https://docs.google.com/document/d/182mUscJlLwrC3kI40vucXSZULFai1Pc2/edit?usp=sharing&ouid=108867984901028014832&rtpof=true&sd=true",
+    "petugasHonor": "Upload"
+  },
+  {
+    "id": "sk-105",
+    "nomorUrut": 104,
+    "nomorSK": "104 TAHUN 2026",
+    "tanggal": "20 Agustus 2026",
+    "uraian": "SK Pengajar SKNP Tahun 2026",
+    "subFungsi": "NERWILIS",
+    "wordUrl": "https://docs.google.com/document/d/1l2cFiFgLczW3H9b4Yk9s0DSX7UaCkvb7/edit?usp=sharing&ouid=108867984901028014832&rtpof=true&sd=true",
+    "petugasHonor": "Upload"
+  },
+  {
+    "id": "sk-106",
+    "nomorUrut": 105,
+    "nomorSK": "105 TAHUN 2026",
+    "tanggal": "20 Agustus 2026",
+    "uraian": "SK Pendataan SKNP Tahun 2026",
+    "subFungsi": "NERWILIS",
+    "wordUrl": "https://docs.google.com/document/d/1AZAiGpyCA0aFXmJzMudFnYWvMK9M2Hvc/edit?usp=sharing&ouid=108867984901028014832&rtpof=true&sd=true",
+    "petugasHonor": "Upload"
+  },
+  {
+    "id": "sk-107",
+    "nomorUrut": 106,
+    "nomorSK": "106 TAHUN 2026",
+    "tanggal": "20 Agustus 2026",
+    "uraian": "SK Pelatihan Petugas SKP Tahun 2026",
+    "subFungsi": "PRODUKSI",
+    "wordUrl": "https://docs.google.com/document/d/1FWCPMrrltiVq6318sk9YjNw4W3rH1qhA/edit?usp=sharing&ouid=108867984901028014832&rtpof=true&sd=true",
+    "petugasHonor": "Upload"
+  },
+  {
+    "id": "sk-108",
+    "nomorUrut": 107,
+    "nomorSK": "107 TAHUN 2026",
+    "tanggal": "20 Agustus 2026",
+    "uraian": "SK Pengajar SKP Tahun 2026",
+    "subFungsi": "PRODUKSI",
+    "wordUrl": "https://docs.google.com/document/d/1M1sPj3DK8hMvC1f6-eurcTdEz74_1Fcj/edit?usp=sharing&ouid=108867984901028014832&rtpof=true&sd=true",
+    "petugasHonor": "Upload"
+  },
+  {
+    "id": "sk-109",
+    "nomorUrut": 108,
+    "nomorSK": "108 TAHUN 2026",
+    "tanggal": "20 Agustus 2026",
+    "uraian": "SK Petugas SKP Tahun 2026",
+    "subFungsi": "PRODUKSI",
+    "wordUrl": "https://docs.google.com/document/d/1ccd3MzBzQz0nI8jrQQRWcCNjB54QQh_r/edit?usp=sharing&ouid=108867984901028014832&rtpof=true&sd=true",
+    "petugasHonor": "Upload"
+  },
+  {
+    "id": "sk-110",
+    "nomorUrut": 109,
+    "nomorSK": "109 TAHUN 2026",
+    "tanggal": "02 September 2026",
+    "uraian": "SK Pelatihan Petugas SKSPPI Tahun 2026",
+    "subFungsi": "DISTRIBUSI",
+    "wordUrl": "https://docs.google.com/document/d/14YtA-Ti3FY3PRIbNevoAxBd4_Gth8vm2/edit?usp=sharing&ouid=108867984901028014832&rtpof=true&sd=true",
+    "petugasHonor": "Upload"
+  },
+  {
+    "id": "sk-111",
+    "nomorUrut": 110,
+    "nomorSK": "110 TAHUN 2026",
+    "tanggal": "02 September 2026",
+    "uraian": "SK Pengajar Pelatihan Petugas SKSPPI Tahun 2026",
+    "subFungsi": "DISTRIBUSI",
+    "wordUrl": "https://docs.google.com/document/d/1u7B4mt5UldPrjrjdpydUBcZnCuOwggMB/edit?usp=sharing&ouid=108867984901028014832&rtpof=true&sd=true",
+    "petugasHonor": "Upload"
+  },
+  {
+    "id": "sk-112",
+    "nomorUrut": 111,
+    "nomorSK": "111 TAHUN 2026",
+    "tanggal": "02 September 2026",
+    "uraian": "SK Pendataan Petugas SKSPPI Tahun 2026",
+    "subFungsi": "DISTRIBUSI",
+    "wordUrl": "https://docs.google.com/document/d/1Shr58I4DG_mWO4lCK-3DHIC9waiPJZEH/edit?usp=sharing&ouid=108867984901028014832&rtpof=true&sd=true",
     "petugasHonor": "Upload"
   }
 ];

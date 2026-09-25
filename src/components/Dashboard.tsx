@@ -105,11 +105,11 @@ export const Dashboard: React.FC<DashboardProps> = ({
     },
     {
       id: 'skp-bulanan' as ActiveTab,
-      title: 'SKP Bulanan',
+      title: 'SKP Triwulanan',
       subtitle: 'Penilaian Kinerja Pegawai',
       icon: Target,
       count: counts.pegawai,
-      sheetUrl: PORTAL_LINKS.skpBulanan,
+      sheetUrl: PORTAL_LINKS.skpDriveUploadSpreadsheet,
       color: 'from-rose-500/10 to-pink-500/10 text-rose-700 border-rose-200',
       badgeColor: 'bg-rose-100 text-rose-800'
     },

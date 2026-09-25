@@ -9,15 +9,13 @@ import {
   ExternalLink, 
   Trash2, 
   X, 
-  Printer,
+  Printer, 
   UserCheck,
-  Calendar,
-  MapPin,
-  Clock
+  FileSpreadsheet
 } from 'lucide-react';
 import { SuratTugas, Pegawai } from '../types';
 import { KODE_KLASIFIKASI_BPS, PORTAL_LINKS } from '../data/seedData';
-import { generateNomorSuratTugas, formatTanggalIndonesia } from '../utils/formatters';
+import { generateNomorSuratTugas, formatTanggalIndonesia, compareNomorUrut, computeNextNomorUrut } from '../utils/formatters';
 import { exportTableToCSV } from '../utils/storage';
 import { OfficialPrintSuratTugas } from './OfficialPrintSuratTugas';
 
@@ -41,31 +39,28 @@ export const SuratTugasView: React.FC<SuratTugasViewProps> = ({
   const [printingSurat, setPrintingSurat] = useState<SuratTugas | null>(null);
 
   const nextNomorUrut = useMemo(() => {
-    const maxNo = suratTugasList.reduce((max, item) => (item.nomorUrut > max ? item.nomorUrut : max), 0);
-    return maxNo + 1;
+    return computeNextNomorUrut(suratTugasList);
   }, [suratTugasList]);
 
   const [formData, setFormData] = useState({
-    nomorUrut: nextNomorUrut,
+    nomorUrut: String(nextNomorUrut),
     tanggal: new Date().toISOString().slice(0, 10),
     tanggalSelesai: '',
     kodeKlasifikasi: 'VS.330',
     selectedPegawaiIds: [] as string[],
     customPetugas: '',
-    tujuanTugas: 'Kabupaten Kepulauan Selayar',
     perihal: '',
     status: 'Aktif' as 'Aktif' | 'Selesai' | 'Draf'
   });
 
   const handleOpenModal = () => {
     setFormData({
-      nomorUrut: nextNomorUrut,
+      nomorUrut: String(computeNextNomorUrut(suratTugasList)),
       tanggal: new Date().toISOString().slice(0, 10),
       tanggalSelesai: '',
       kodeKlasifikasi: 'VS.330',
       selectedPegawaiIds: [],
       customPetugas: '',
-      tujuanTugas: 'Kabupaten Kepulauan Selayar',
       perihal: '',
       status: 'Aktif'
     });
@@ -89,7 +84,7 @@ export const SuratTugasView: React.FC<SuratTugasViewProps> = ({
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.perihal.trim()) {
-      alert('Harap masukkan perihal / tujuan kegiatan penugasan.');
+      alert('Harap masukkan perihal / uraian kegiatan penugasan.');
       return;
     }
 
@@ -116,7 +111,6 @@ export const SuratTugasView: React.FC<SuratTugasViewProps> = ({
       petugas: assigneeText,
       petugasIds: formData.selectedPegawaiIds,
       perihal: formData.perihal.trim(),
-      tujuanTugas: formData.tujuanTugas.trim() || 'Kabupaten Kepulauan Selayar',
       status: formData.status,
       createdAt: new Date().toISOString()
     };
@@ -132,17 +126,18 @@ export const SuratTugasView: React.FC<SuratTugasViewProps> = ({
   };
 
   const filteredList = useMemo(() => {
-    return suratTugasList.filter(item => {
-      const matchSearch =
-        item.nomorSurat.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.perihal.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.petugas.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.tujuanTugas.toLowerCase().includes(searchTerm.toLowerCase());
+    return suratTugasList
+      .filter(item => {
+        const matchSearch =
+          item.nomorSurat.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          item.perihal.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          item.petugas.toLowerCase().includes(searchTerm.toLowerCase());
 
-      const matchKlasifikasi = filterKlasifikasi === 'Semua' || item.kodeKlasifikasi === filterKlasifikasi;
+        const matchKlasifikasi = filterKlasifikasi === 'Semua' || item.kodeKlasifikasi === filterKlasifikasi;
 
-      return matchSearch && matchKlasifikasi;
-    });
+        return matchSearch && matchKlasifikasi;
+      })
+      .sort((a, b) => compareNomorUrut(a.nomorUrut, b.nomorUrut));
   }, [suratTugasList, searchTerm, filterKlasifikasi]);
 
   const handleExportCSV = () => {
@@ -153,7 +148,6 @@ export const SuratTugasView: React.FC<SuratTugasViewProps> = ({
       Kode_Klasifikasi: s.kodeKlasifikasi,
       Petugas_Pelaksana: s.petugas,
       Perihal: s.perihal,
-      Tujuan_Tugas: s.tujuanTugas,
       Status: s.status || 'Aktif'
     }));
     exportTableToCSV(`Surat_Tugas_BPS_Selayar_${new Date().toISOString().slice(0, 10)}`, rows);
@@ -174,13 +168,13 @@ export const SuratTugasView: React.FC<SuratTugasViewProps> = ({
     <div className="space-y-4 sm:space-y-6 pb-12">
       
       {/* Top Header Card */}
-      <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-8 border border-slate-200 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-3 sm:gap-4">
+      <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-8 border border-slate-200 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-center gap-3 sm:gap-4">
-          <div className="w-11 h-11 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl bg-blue-50 border border-blue-100 p-2.5 sm:p-3 flex items-center justify-center text-blue-600 flex-shrink-0">
+          <div className="w-11 h-11 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl bg-blue-50 border border-blue-100 p-2.5 sm:p-3 flex items-center justify-center text-blue-600 shrink-0">
             <Send className="w-full h-full stroke-[1.75]" />
           </div>
           <div>
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-1.5 flex-wrap">
               <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-blue-700 bg-blue-50 px-2 py-0.5 rounded-full border border-blue-200">
                 Surat Tugas
               </span>
@@ -195,30 +189,53 @@ export const SuratTugasView: React.FC<SuratTugasViewProps> = ({
           </div>
         </div>
 
-        <div className="flex items-center gap-2 w-full md:w-auto">
+        <div className="flex flex-wrap items-center gap-2">
+          {/* Klasifikasi Sheet Buttons */}
+          <a
+            href={PORTAL_LINKS.klasifikasiSubstantif}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="px-3 py-2 sm:py-2.5 rounded-xl border border-sky-200 bg-sky-50/70 hover:bg-sky-100 text-sky-800 text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-2xs"
+            title="Daftar Kode Klasifikasi Substantif (Google Sheet)"
+          >
+            <FileSpreadsheet className="w-4 h-4 text-sky-600" />
+            <span>Klasifikasi Substantif</span>
+          </a>
+
+          <a
+            href={PORTAL_LINKS.klasifikasiFasilitatif}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="px-3 py-2 sm:py-2.5 rounded-xl border border-indigo-200 bg-indigo-50/70 hover:bg-indigo-100 text-indigo-800 text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-2xs"
+            title="Daftar Kode Klasifikasi Fasilitatif (Google Sheet)"
+          >
+            <FileSpreadsheet className="w-4 h-4 text-indigo-600" />
+            <span>Klasifikasi Fasilitatif</span>
+          </a>
+
           <a
             href={PORTAL_LINKS.suratTugas}
             target="_blank"
             rel="noopener noreferrer"
-            className="p-2 sm:px-4 sm:py-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-semibold flex items-center gap-1.5 transition-colors"
+            className="p-2 sm:px-3 sm:py-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-semibold flex items-center gap-1.5 transition-colors"
             title="Buka Spreadsheet Asli"
           >
             <ExternalLink className="w-4 h-4 text-slate-400" />
-            <span className="hidden sm:inline">Google Sheet</span>
+            <span className="hidden sm:inline">Sheet ST</span>
           </a>
 
           <button
             onClick={handleExportCSV}
-            className="p-2 sm:px-4 sm:py-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-semibold flex items-center gap-1.5 transition-colors"
+            className="p-2 sm:px-3 sm:py-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-semibold flex items-center gap-1.5 transition-colors"
             title="Ekspor CSV"
           >
             <Download className="w-4 h-4 text-slate-400" />
-            <span className="hidden sm:inline">Ekspor CSV</span>
+            <span className="hidden sm:inline">CSV</span>
           </button>
 
           <button
             onClick={handleOpenModal}
-            className="flex-1 md:flex-initial px-3.5 py-2 sm:px-4 sm:py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs sm:text-sm font-bold flex items-center justify-center gap-1.5 shadow-xs transition-all active:scale-95"
+            className="px-3.5 py-2 sm:px-4 sm:py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs sm:text-sm font-bold flex items-center justify-center gap-1.5 shadow-xs transition-all active:scale-95"
           >
             <Plus className="w-4 h-4" />
             <span>Buat Surat Tugas</span>
@@ -232,7 +249,7 @@ export const SuratTugasView: React.FC<SuratTugasViewProps> = ({
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
           <input
             type="text"
-            placeholder="Cari nomor, tugas, atau nama petugas..."
+            placeholder="Cari nomor, perihal, atau nama petugas..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm focus:outline-hidden focus:ring-2 focus:ring-blue-500 transition-all"
@@ -311,10 +328,6 @@ export const SuratTugasView: React.FC<SuratTugasViewProps> = ({
                     <UserCheck className="w-3 h-3 text-blue-600" />
                     {item.petugas}
                   </span>
-                  <span className="inline-flex items-center gap-1 text-slate-500">
-                    <MapPin className="w-3 h-3 text-slate-400" />
-                    {item.tujuanTugas || 'Selayar'}
-                  </span>
                 </div>
               </div>
 
@@ -355,14 +368,13 @@ export const SuratTugasView: React.FC<SuratTugasViewProps> = ({
                 <th className="py-3.5 px-4 w-52">Nomor Surat Tugas</th>
                 <th className="py-3.5 px-4">Nama Petugas</th>
                 <th className="py-3.5 px-4">Perihal Penugasan</th>
-                <th className="py-3.5 px-4 w-44">Tujuan Tugas</th>
                 <th className="py-3.5 px-4 w-36 text-center">Aksi / Cetak</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {filteredList.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="py-12 text-center text-slate-400">
+                  <td colSpan={6} className="py-12 text-center text-slate-400">
                     Tidak ada surat tugas yang cocok dengan pencarian.
                   </td>
                 </tr>
@@ -404,12 +416,6 @@ export const SuratTugasView: React.FC<SuratTugasViewProps> = ({
                           Kode: {item.kodeKlasifikasi}
                         </span>
                       )}
-                    </td>
-                    <td className="py-3 px-4 text-slate-600 text-xs">
-                      <span className="flex items-center gap-1">
-                        <MapPin className="w-3 h-3 text-slate-400" />
-                        {item.tujuanTugas || 'Kab. Kepulauan Selayar'}
-                      </span>
                     </td>
                     <td className="py-3 px-4 text-center">
                       <div className="flex items-center justify-center gap-1.5">
@@ -488,13 +494,13 @@ export const SuratTugasView: React.FC<SuratTugasViewProps> = ({
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
                 <div>
                   <label className="block text-[11px] font-bold text-slate-700 mb-1">
-                    Nomor Urut
+                    Nomor Urut <span className="text-[10px] text-slate-400 font-normal">(bisa 20.1)</span>
                   </label>
                   <input
-                    type="number"
-                    min={1}
+                    type="text"
                     value={formData.nomorUrut}
-                    onChange={(e) => setFormData({ ...formData, nomorUrut: parseInt(e.target.value) || 1 })}
+                    onChange={(e) => setFormData({ ...formData, nomorUrut: e.target.value })}
+                    placeholder="Contoh: 20 atau 20.1"
                     className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs sm:text-sm font-mono focus:ring-2 focus:ring-blue-500 focus:outline-hidden"
                     required
                   />
@@ -527,9 +533,31 @@ export const SuratTugasView: React.FC<SuratTugasViewProps> = ({
               </div>
 
               <div>
-                <label className="block text-[11px] font-bold text-slate-700 mb-1">
-                  Kode Klasifikasi Kegiatan
-                </label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-[11px] font-bold text-slate-700">
+                    Kode Klasifikasi Kegiatan
+                  </label>
+                  <div className="flex items-center gap-2 text-[10px]">
+                    <span className="text-slate-400">Lihat Sheet:</span>
+                    <a
+                      href={PORTAL_LINKS.klasifikasiSubstantif}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-sky-600 hover:text-sky-800 font-semibold underline flex items-center gap-0.5"
+                    >
+                      Substantif <ExternalLink className="w-2.5 h-2.5 inline" />
+                    </a>
+                    <span className="text-slate-300">|</span>
+                    <a
+                      href={PORTAL_LINKS.klasifikasiFasilitatif}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-indigo-600 hover:text-indigo-800 font-semibold underline flex items-center gap-0.5"
+                    >
+                      Fasilitatif <ExternalLink className="w-2.5 h-2.5 inline" />
+                    </a>
+                  </div>
+                </div>
                 <select
                   value={formData.kodeKlasifikasi}
                   onChange={(e) => setFormData({ ...formData, kodeKlasifikasi: e.target.value })}
@@ -602,26 +630,12 @@ export const SuratTugasView: React.FC<SuratTugasViewProps> = ({
                   Perihal / Kegiatan Penugasan <span className="text-rose-500">*</span>
                 </label>
                 <textarea
-                  rows={2}
+                  rows={3}
                   placeholder="Contoh: Pengawasan Lapangan Survei Angkatan Kerja Nasional (Sakernas) Februari 2026"
                   value={formData.perihal}
                   onChange={(e) => setFormData({ ...formData, perihal: e.target.value })}
                   className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs sm:text-sm focus:ring-2 focus:ring-blue-500 focus:outline-hidden"
                   required
-                />
-              </div>
-
-              {/* Lokasi */}
-              <div>
-                <label className="block text-[11px] font-bold text-slate-700 mb-1">
-                  Lokasi / Tujuan Penugasan
-                </label>
-                <input
-                  type="text"
-                  placeholder="Contoh: Kecamatan Benteng dan Kecamatan Bontomanai"
-                  value={formData.tujuanTugas}
-                  onChange={(e) => setFormData({ ...formData, tujuanTugas: e.target.value })}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs sm:text-sm focus:ring-2 focus:ring-blue-500 focus:outline-hidden"
                 />
               </div>
 

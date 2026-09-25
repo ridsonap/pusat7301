@@ -11,7 +11,7 @@ export interface Pegawai {
 
 export interface SuratUmum {
   id: string;
-  nomorUrut: number;
+  nomorUrut: number | string;
   tanggal: string;
   jenisSurat: 'Internal' | 'Eksternal';
   tujuan: string;
@@ -25,14 +25,14 @@ export interface SuratUmum {
 
 export interface SuratTugas {
   id: string;
-  nomorUrut: number;
+  nomorUrut: number | string;
   tanggal: string;
   kodeKlasifikasi: string;
   nomorSurat: string;
   petugas: string;
   petugasIds?: string[];
   perihal: string;
-  tujuanTugas: string;
+  tujuanTugas?: string;
   tanggalMulai?: string;
   tanggalSelesai?: string;
   dasarPenugasan?: string;
@@ -43,11 +43,11 @@ export interface SuratTugas {
 
 export interface SKKegiatan {
   id: string;
-  nomorUrut: number;
+  nomorUrut: number | string;
   nomorSK: string;
   tanggal: string;
   uraian: string;
-  subFungsi: 'UMUM' | 'IPDS' | 'DISTRIBUSI' | 'SOSIAL' | 'PRODUKSI' | 'NERWILCA' | string;
+  subFungsi: 'UMUM' | 'IPDS' | 'DISTRIBUSI' | 'SOSIAL' | 'PRODUKSI' | 'NERWILIS' | string;
   pdfUrl?: string;
   wordUrl?: string;
   petugasHonor?: string;
@@ -56,7 +56,7 @@ export interface SKKegiatan {
 
 export interface BAST {
   id: string;
-  nomorUrut: number;
+  nomorUrut: number | string;
   tanggal: string;
   kodeKlasifikasi: string;
   nomorBAST: string;
@@ -70,7 +70,7 @@ export interface BAST {
 
 export interface FormPermintaan {
   id: string;
-  nomorUrut: number;
+  nomorUrut: number | string;
   tanggal: string;
   tipeForm: 'Belanja Bahan' | 'Belanja Barang' | 'Belanja Pegawai' | 'Jasa Profesi' | 'Perjalanan Dinas' | 'Lainnya' | string;
   nomorForm: string;
@@ -84,7 +84,7 @@ export interface FormPermintaan {
 
 export interface SuratPPK {
   id: string;
-  nomorUrut: number;
+  nomorUrut: number | string;
   tanggal: string;
   jenisSurat: 'Eksternal' | 'Internal';
   tujuan: string;
@@ -100,6 +100,7 @@ export interface SKPItem {
   pegawaiId: string;
   nama: string;
   jabatan: string;
+  uploadDriveUrl?: string;
   triwulan1: { hasil: string; perilaku: string; predikat: string; fileUrl?: string };
   triwulan2: { hasil: string; perilaku: string; predikat: string; fileUrl?: string };
   triwulan3: { hasil: string; perilaku: string; predikat: string; fileUrl?: string };

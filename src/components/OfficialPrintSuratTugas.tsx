@@ -141,10 +141,12 @@ export const OfficialPrintSuratTugas: React.FC<OfficialPrintSuratTugasProps> = (
             <span className="font-bold w-32 flex-shrink-0">Untuk Melaksanakan</span>
             <span>: {suratTugas.perihal}</span>
           </div>
-          <div className="flex items-start gap-4">
-            <span className="font-bold w-32 flex-shrink-0">Tujuan Tugas / Lokasi</span>
-            <span>: {suratTugas.tujuanTugas || 'Kabupaten Kepulauan Selayar'}</span>
-          </div>
+          {suratTugas.tujuanTugas && (
+            <div className="flex items-start gap-4">
+              <span className="font-bold w-32 flex-shrink-0">Tujuan Tugas / Lokasi</span>
+              <span>: {suratTugas.tujuanTugas}</span>
+            </div>
+          )}
           <div className="flex items-start gap-4">
             <span className="font-bold w-32 flex-shrink-0">Waktu Penugasan</span>
             <span>: {suratTugas.tanggal} {suratTugas.tanggalSelesai ? `s.d ${suratTugas.tanggalSelesai}` : ''}</span>

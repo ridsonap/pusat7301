@@ -54,7 +54,7 @@ export const Header: React.FC<HeaderProps> = ({
     { id: 'bast', label: 'BAST', icon: FileCheck2, badge: counts.bast },
     { id: 'form-permintaan', label: 'Form Permintaan', icon: ClipboardList, badge: counts.formPermintaan },
     { id: 'surat-ppk', label: 'Surat PPK', icon: FileText, badge: counts.suratPPK },
-    { id: 'skp-bulanan', label: 'SKP Bulanan', icon: Target },
+    { id: 'skp-bulanan', label: 'SKP Triwulanan', icon: Target },
     { id: 'pegawai', label: 'Database Pegawai', icon: Users, badge: counts.pegawai },
     { id: 'dokumentasi', label: 'Dokumentasi', icon: Camera },
     { id: 'spm-digital', label: 'SPM Digital', icon: Receipt },

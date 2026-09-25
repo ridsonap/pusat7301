@@ -43,7 +43,7 @@ export const Navigation: React.FC<NavigationProps> = ({
     { id: 'form-permintaan', label: 'Form Permintaan', icon: ClipboardList, badge: counts.formPermintaan },
     { id: 'spm-digital', label: 'SPM Digital', icon: Receipt },
     { id: 'surat-ppk', label: 'Surat PPK', icon: FileText, badge: counts.suratPPK },
-    { id: 'skp-bulanan', label: 'SKP Bulanan', icon: Target },
+    { id: 'skp-bulanan', label: 'SKP Triwulanan', icon: Target },
     { id: 'pegawai', label: 'Database Pegawai', icon: Users, badge: counts.pegawai },
   ];
 
