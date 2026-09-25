@@ -125,19 +125,19 @@ export const BASTView: React.FC<BASTViewProps> = ({
     <div className="space-y-6 pb-12">
       
       {/* Header */}
-      <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
-          <div className="w-14 h-14 rounded-2xl bg-emerald-50 border border-emerald-100 p-3 flex items-center justify-center text-emerald-600">
+      <div className="bg-white rounded-3xl p-5 sm:p-8 border border-slate-200 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex items-center gap-3.5 sm:gap-4">
+          <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-emerald-50 border border-emerald-100 p-2.5 sm:p-3 flex items-center justify-center text-emerald-600 shrink-0">
             <FileCheck2 className="w-full h-full stroke-[1.75]" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-xs font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+              <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
                 Berita Acara
               </span>
-              <span className="text-xs font-semibold text-slate-500">BPS Kab. Kepulauan Selayar</span>
+              <span className="text-[10px] sm:text-xs font-semibold text-slate-500">BPS Kab. Kepulauan Selayar</span>
             </div>
-            <h2 className="text-2xl font-black text-slate-900 tracking-tight mt-1">
+            <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight mt-1">
               BAST (Berita Acara Serah Terima)
             </h2>
             <p className="text-xs sm:text-sm text-slate-500">
@@ -146,28 +146,28 @@ export const BASTView: React.FC<BASTViewProps> = ({
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
           <a
             href={PORTAL_LINKS.bast}
             target="_blank"
             rel="noopener noreferrer"
-            className="px-4 py-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs sm:text-sm font-semibold flex items-center gap-2 transition-colors"
+            className="px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs sm:text-sm font-semibold flex items-center gap-1.5 sm:gap-2 transition-colors"
           >
             <ExternalLink className="w-4 h-4 text-slate-400" />
-            <span className="hidden sm:inline">Google Sheet</span>
+            <span>Sheet</span>
           </a>
 
           <button
             onClick={handleExportCSV}
-            className="px-4 py-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs sm:text-sm font-semibold flex items-center gap-2 transition-colors"
+            className="px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs sm:text-sm font-semibold flex items-center gap-1.5 sm:gap-2 transition-colors"
           >
             <Download className="w-4 h-4 text-slate-400" />
-            <span className="hidden sm:inline">Ekspor CSV</span>
+            <span>CSV</span>
           </button>
 
           <button
             onClick={handleOpenModal}
-            className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs sm:text-sm font-bold flex items-center gap-2 shadow-xs hover:shadow-md transition-all active:scale-95"
+            className="flex-1 sm:flex-none justify-center px-4 py-2 sm:py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs sm:text-sm font-bold flex items-center gap-2 shadow-xs hover:shadow-md transition-all active:scale-95"
           >
             <Plus className="w-4 h-4" />
             <span>Buat BAST Baru</span>
@@ -191,7 +191,7 @@ export const BASTView: React.FC<BASTViewProps> = ({
         <select
           value={filterKlasifikasi}
           onChange={(e) => setFilterKlasifikasi(e.target.value)}
-          className="bg-slate-50 border border-slate-200 text-slate-700 text-xs rounded-xl px-3 py-2 font-medium focus:outline-hidden focus:ring-2 focus:ring-emerald-500"
+          className="w-full md:w-auto bg-slate-50 border border-slate-200 text-slate-700 text-xs rounded-xl px-3 py-2 font-medium focus:outline-hidden focus:ring-2 focus:ring-emerald-500"
         >
           <option value="Semua">Semua Kode Klasifikasi</option>
           {KODE_KLASIFIKASI_BPS.map(k => (
@@ -200,8 +200,95 @@ export const BASTView: React.FC<BASTViewProps> = ({
         </select>
       </div>
 
-      {/* Table */}
-      <div className="bg-white rounded-3xl border border-slate-200 shadow-xs overflow-hidden">
+      {/* Mobile Card View (md:hidden) */}
+      <div className="md:hidden space-y-3">
+        {filteredList.length === 0 ? (
+          <div className="bg-white rounded-2xl p-8 text-center text-slate-400 text-xs border border-slate-200">
+            Tidak ada data BAST yang cocok.
+          </div>
+        ) : (
+          filteredList.map((item) => (
+            <div
+              key={item.id}
+              className="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs space-y-2.5"
+            >
+              {/* Card Header */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-1.5">
+                  <span className="w-6 h-6 rounded-full bg-slate-100 text-slate-700 text-[11px] font-mono font-bold flex items-center justify-center">
+                    {item.nomorUrut}
+                  </span>
+                  <span className="text-[11px] text-slate-500 font-medium">
+                    {item.tanggal}
+                  </span>
+                </div>
+
+                {item.kodeKlasifikasi && (
+                  <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                    {item.kodeKlasifikasi}
+                  </span>
+                )}
+              </div>
+
+              {/* Card Body */}
+              <div>
+                <div className="flex items-center justify-between">
+                  <span className="font-mono font-black text-sm text-emerald-950 tracking-tight break-all">
+                    {item.nomorBAST}
+                  </span>
+                  <button
+                    onClick={() => copyToClipboard(item.nomorBAST, item.id)}
+                    className="p-1 text-slate-400 hover:text-emerald-600 rounded-md shrink-0 ml-2"
+                    title="Salin Nomor BAST"
+                  >
+                    {copiedId === item.id ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
+                  </button>
+                </div>
+
+                <p className="text-xs font-bold text-slate-900 mt-1 leading-snug">
+                  {item.perihal}
+                </p>
+
+                <div className="mt-2 text-[11px] text-slate-600 bg-slate-50 rounded-xl p-2.5 border border-slate-100 space-y-1">
+                  <div className="flex items-start gap-1">
+                    <span className="text-slate-400 font-medium shrink-0">Pihak I:</span>
+                    <span className="font-semibold text-slate-800">{item.pihakPertama}</span>
+                  </div>
+                  <div className="flex items-start gap-1">
+                    <span className="text-slate-400 font-medium shrink-0">Pihak II:</span>
+                    <span className="font-semibold text-slate-800">{item.pihakKedua}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Card Actions */}
+              <div className="pt-2 border-t border-slate-100 flex items-center gap-2">
+                <button
+                  onClick={() => setPrintingBast(item)}
+                  className="flex-1 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-colors border border-emerald-200"
+                >
+                  <Printer className="w-3.5 h-3.5" />
+                  <span>Cetak Format BAST</span>
+                </button>
+                <button
+                  onClick={() => {
+                    if (confirm(`Hapus BAST nomor ${item.nomorBAST}?`)) {
+                      onDeleteBAST(item.id);
+                    }
+                  }}
+                  className="p-2 text-slate-400 hover:text-rose-600 rounded-xl hover:bg-rose-50 border border-slate-100 shrink-0"
+                  title="Hapus"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
+      {/* Desktop Table (hidden md:block) */}
+      <div className="hidden md:block bg-white rounded-3xl border border-slate-200 shadow-xs overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs sm:text-sm">
             <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 font-bold uppercase tracking-wider text-[11px]">

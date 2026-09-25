@@ -85,19 +85,19 @@ export const DokumentasiView: React.FC = () => {
     <div className="space-y-6 pb-12">
       
       {/* Header Card */}
-      <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
-          <div className="w-14 h-14 rounded-2xl bg-purple-50 border border-purple-100 p-3 flex items-center justify-center text-purple-600">
+      <div className="bg-white rounded-3xl p-5 sm:p-8 border border-slate-200 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex items-center gap-3.5 sm:gap-4">
+          <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-purple-50 border border-purple-100 p-2.5 sm:p-3 flex items-center justify-center text-purple-600 shrink-0">
             <Camera className="w-full h-full stroke-[1.75]" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-xs font-bold uppercase tracking-wider text-purple-700 bg-purple-50 px-2.5 py-0.5 rounded-full border border-purple-200">
+              <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-purple-700 bg-purple-50 px-2.5 py-0.5 rounded-full border border-purple-200">
                 Dokumentasi & Arsip Media
               </span>
-              <span className="text-xs font-semibold text-slate-500">BPS Kab. Kepulauan Selayar</span>
+              <span className="text-[10px] sm:text-xs font-semibold text-slate-500">BPS Kab. Kepulauan Selayar</span>
             </div>
-            <h2 className="text-2xl font-black text-slate-900 tracking-tight mt-1">
+            <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight mt-1">
               Galeri Dokumentasi Kegiatan
             </h2>
             <p className="text-xs sm:text-sm text-slate-500">
@@ -110,10 +110,10 @@ export const DokumentasiView: React.FC = () => {
           href={PORTAL_LINKS.dokumentasiDrive}
           target="_blank"
           rel="noopener noreferrer"
-          className="px-5 py-3 rounded-2xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs sm:text-sm flex items-center gap-2 shadow-md hover:shadow-lg transition-all active:scale-95 self-start md:self-auto"
+          className="w-full md:w-auto justify-center px-5 py-2.5 sm:py-3 rounded-2xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs sm:text-sm flex items-center gap-2 shadow-md hover:shadow-lg transition-all active:scale-95"
         >
           <ExternalLink className="w-4 h-4" />
-          <span>Buka Google Drive Dokumentasi</span>
+          <span>Buka Google Drive</span>
         </a>
       </div>
 
@@ -130,13 +130,13 @@ export const DokumentasiView: React.FC = () => {
           />
         </div>
 
-        <div className="flex flex-wrap items-center gap-1 bg-slate-100 p-1 rounded-xl text-xs font-semibold">
+        <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl text-[11px] sm:text-xs font-semibold overflow-x-auto w-full md:w-auto max-w-full">
           {['Semua', 'Pelatihan', 'Supervisi Lapangan', 'Rapat & Evaluasi', 'Survei Lapangan', 'BMN & Perlengkapan', 'Diseminasi'].map(k => (
             <button
               key={k}
               onClick={() => setSelectedKategori(k)}
-              className={`px-3 py-1.5 rounded-lg transition-all ${
-                selectedKategori === k ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600 hover:text-slate-900'
+              className={`px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-lg transition-all shrink-0 whitespace-nowrap ${
+                selectedKategori === k ? 'bg-white text-slate-900 shadow-xs font-bold' : 'text-slate-600 hover:text-slate-900'
               }`}
             >
               {k}

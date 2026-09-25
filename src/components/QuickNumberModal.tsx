@@ -75,17 +75,17 @@ export const QuickNumberModal: React.FC<QuickNumberModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-fadeIn">
-      <div className="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl border border-slate-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs animate-fadeIn">
+      <div className="bg-white rounded-3xl max-w-lg w-full p-5 sm:p-8 shadow-2xl border border-slate-200 max-h-[90vh] overflow-y-auto">
         
-        <div className="flex items-center justify-between pb-4 mb-4 border-b border-slate-100">
+        <div className="flex items-center justify-between pb-3 sm:pb-4 mb-3 sm:mb-4 border-b border-slate-100">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-sky-50 border border-sky-100 flex items-center justify-center text-sky-600">
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-sky-50 border border-sky-100 flex items-center justify-center text-sky-600 shrink-0">
               <Hash className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-lg font-black text-slate-900">Ambil Nomor Surat Instan</h3>
-              <p className="text-xs text-slate-500">Generator nomor urut resmi BPS 7301 Tahun {tahun}</p>
+              <h3 className="text-base sm:text-lg font-black text-slate-900">Ambil Nomor Surat Instan</h3>
+              <p className="text-[11px] sm:text-xs text-slate-500">Generator nomor urut resmi BPS 7301 Tahun {tahun}</p>
             </div>
           </div>
           <button
@@ -115,9 +115,9 @@ export const QuickNumberModal: React.FC<QuickNumberModalProps> = ({
                 <button
                   key={item.id}
                   onClick={() => setKategori(item.id as typeof kategori)}
-                  className={`p-2.5 rounded-xl border text-center transition-all ${
+                  className={`p-2 sm:p-2.5 rounded-xl border text-center text-xs transition-all ${
                     kategori === item.id
-                      ? 'bg-sky-600 text-white border-sky-600 shadow-xs'
+                      ? 'bg-sky-600 text-white border-sky-600 shadow-xs font-bold'
                       : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
                   }`}
                 >
@@ -148,17 +148,17 @@ export const QuickNumberModal: React.FC<QuickNumberModalProps> = ({
           )}
 
           {/* Generated Number Box */}
-          <div className="bg-gradient-to-br from-sky-50 via-blue-50 to-indigo-50 border-2 border-sky-200 p-5 rounded-2xl text-center relative overflow-hidden">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-sky-700 block mb-1">
+          <div className="bg-gradient-to-br from-sky-50 via-blue-50 to-indigo-50 border-2 border-sky-200 p-4 sm:p-5 rounded-2xl text-center relative overflow-hidden">
+            <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-sky-700 block mb-1">
               Nomor Surat Berikutnya Yang Tersedia
             </span>
-            <div className="text-xl sm:text-2xl font-mono font-black text-slate-900 tracking-tight my-2">
+            <div className="text-base sm:text-2xl font-mono font-black text-slate-900 tracking-tight my-2 break-all">
               {nextNumber}
             </div>
             
             <button
               onClick={handleCopy}
-              className={`mt-2 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-xs sm:text-sm shadow-md transition-all active:scale-95 ${
+              className={`w-full sm:w-auto mt-2 inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl font-bold text-xs sm:text-sm shadow-md transition-all active:scale-95 ${
                 copied
                   ? 'bg-emerald-600 text-white'
                   : 'bg-sky-600 hover:bg-sky-500 text-white'
@@ -179,7 +179,7 @@ export const QuickNumberModal: React.FC<QuickNumberModalProps> = ({
           </div>
 
           {/* Action button to open full form */}
-          <div className="pt-2 flex justify-between items-center text-xs">
+          <div className="pt-2 flex flex-col sm:flex-row justify-between items-center gap-1.5 text-xs text-center sm:text-left">
             <span className="text-slate-400">
               Ingin langsung mengisi rincian surat?
             </span>
@@ -187,7 +187,15 @@ export const QuickNumberModal: React.FC<QuickNumberModalProps> = ({
               onClick={handleGoToModule}
               className="font-bold text-sky-600 hover:text-sky-700 flex items-center gap-1 group"
             >
-              <span>Buka Menu {kategori}</span>
+              <span>
+                Buka Menu {
+                  kategori === 'suratUmum' ? 'Surat Umum' :
+                  kategori === 'suratTugas' ? 'Surat Tugas' :
+                  kategori === 'skKegiatan' ? 'SK Kegiatan' :
+                  kategori === 'bast' ? 'BAST' :
+                  kategori === 'formPermintaan' ? 'Form Permintaan' : 'Surat PPK'
+                }
+              </span>
               <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
             </button>
           </div>

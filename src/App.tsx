@@ -207,6 +207,7 @@ export const App: React.FC = () => {
         setActiveTab={setActiveTab}
         onOpenQuickNumber={() => setIsQuickNumberOpen(true)}
         onResetData={handleResetData}
+        counts={counts}
       />
 
       {/* Tab Navigation */}
