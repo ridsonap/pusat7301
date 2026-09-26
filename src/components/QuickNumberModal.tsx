@@ -34,7 +34,7 @@ export const QuickNumberModal: React.FC<QuickNumberModalProps> = ({
   if (!isOpen) return null;
 
   const [kategori, setKategori] = useState<'suratUmum' | 'suratTugas' | 'skKegiatan' | 'bast' | 'formPermintaan' | 'suratPPK'>('suratUmum');
-  const [kodeKlasifikasi, setKodeKlasifikasi] = useState('PR.710');
+  const [kodeKlasifikasi, setKodeKlasifikasi] = useState('VS.330');
   const [customNomor, setCustomNomor] = useState('');
   const [copied, setCopied] = useState(false);
 

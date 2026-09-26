@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 import { BAST } from '../types';
 import { KODE_KLASIFIKASI_BPS, PORTAL_LINKS } from '../data/seedData';
-import { generateNomorBAST, formatTanggalIndonesia, compareNomorUrut, computeNextNomorUrut } from '../utils/formatters';
+import { generateNomorBAST, formatTanggalIndonesia, compareNomorUrutDesc, computeNextNomorUrut, getSortedKlasifikasiList } from '../utils/formatters';
 import { exportTableToCSV } from '../utils/storage';
 
 interface BASTViewProps {
@@ -33,6 +33,10 @@ export const BASTView: React.FC<BASTViewProps> = ({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [printingBast, setPrintingBast] = useState<BAST | null>(null);
+
+  const sortedKlasifikasi = useMemo(() => {
+    return getSortedKlasifikasiList(bastList);
+  }, [bastList]);
 
   const nextNomorUrut = useMemo(() => {
     return computeNextNomorUrut(bastList);
@@ -106,7 +110,7 @@ export const BASTView: React.FC<BASTViewProps> = ({
 
         return matchSearch && matchKlasifikasi;
       })
-      .sort((a, b) => compareNomorUrut(a.nomorUrut, b.nomorUrut));
+      .sort((a, b) => compareNomorUrutDesc(a.nomorUrut, b.nomorUrut));
   }, [bastList, searchTerm, filterKlasifikasi]);
 
   const handleExportCSV = () => {
@@ -194,82 +198,71 @@ export const BASTView: React.FC<BASTViewProps> = ({
           onChange={(e) => setFilterKlasifikasi(e.target.value)}
           className="w-full md:w-auto bg-slate-50 border border-slate-200 text-slate-700 text-xs rounded-xl px-3 py-2 font-medium focus:outline-hidden focus:ring-2 focus:ring-emerald-500"
         >
-          <option value="Semua">Semua Kode Klasifikasi</option>
-          {KODE_KLASIFIKASI_BPS.map(k => (
+          <option value="Semua">Semua Kode Klasifikasi (Sering Digunakan)</option>
+          {sortedKlasifikasi.map(k => (
             <option key={k.kode} value={k.kode}>{k.kode} - {k.kategori}</option>
           ))}
         </select>
       </div>
 
-      {/* Mobile Card View (md:hidden) */}
-      <div className="md:hidden space-y-3">
+      {/* Mobile Row View (md:hidden) */}
+      <div className="md:hidden bg-white rounded-2xl border border-slate-200 shadow-xs divide-y divide-slate-100 overflow-hidden">
         {filteredList.length === 0 ? (
-          <div className="bg-white rounded-2xl p-8 text-center text-slate-400 text-xs border border-slate-200">
+          <div className="p-8 text-center text-slate-400 text-xs">
             Tidak ada data BAST yang cocok.
           </div>
         ) : (
           filteredList.map((item) => (
             <div
               key={item.id}
-              className="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs space-y-2.5"
+              className="p-3.5 hover:bg-slate-50/70 transition-colors flex items-start justify-between gap-3"
             >
-              {/* Card Header */}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-1.5">
-                  <span className="w-6 h-6 rounded-full bg-slate-100 text-slate-700 text-[11px] font-mono font-bold flex items-center justify-center">
-                    {item.nomorUrut}
-                  </span>
-                  <span className="text-[11px] text-slate-500 font-medium">
-                    {item.tanggal}
-                  </span>
-                </div>
+              {/* Kolom Kiri: Badge & Info BAST */}
+              <div className="flex items-start gap-2.5 min-w-0 flex-1">
+                <span className="w-7 h-7 rounded-xl bg-slate-100 text-slate-800 text-[11px] font-mono font-bold flex items-center justify-center shrink-0 border border-slate-200/80 mt-0.5">
+                  {item.nomorUrut}
+                </span>
 
-                {item.kodeKlasifikasi && (
-                  <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
-                    {item.kodeKlasifikasi}
-                  </span>
-                )}
-              </div>
-
-              {/* Card Body */}
-              <div>
-                <div className="flex items-center justify-between">
-                  <span className="font-mono font-black text-sm text-emerald-950 tracking-tight break-all">
-                    {item.nomorBAST}
-                  </span>
-                  <button
-                    onClick={() => copyToClipboard(item.nomorBAST, item.id)}
-                    className="p-1 text-slate-400 hover:text-emerald-600 rounded-md shrink-0 ml-2"
-                    title="Salin Nomor BAST"
-                  >
-                    {copiedId === item.id ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
-                  </button>
-                </div>
-
-                <p className="text-xs font-bold text-slate-900 mt-1 leading-snug">
-                  {item.perihal}
-                </p>
-
-                <div className="mt-2 text-[11px] text-slate-600 bg-slate-50 rounded-xl p-2.5 border border-slate-100 space-y-1">
-                  <div className="flex items-start gap-1">
-                    <span className="text-slate-400 font-medium shrink-0">Pihak I:</span>
-                    <span className="font-semibold text-slate-800">{item.pihakPertama}</span>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <span className="font-mono font-bold text-xs text-emerald-950 tracking-tight">
+                      {item.nomorBAST}
+                    </span>
+                    <span className="text-[10px] text-slate-400 font-medium">• {item.tanggal}</span>
                   </div>
-                  <div className="flex items-start gap-1">
-                    <span className="text-slate-400 font-medium shrink-0">Pihak II:</span>
-                    <span className="font-semibold text-slate-800">{item.pihakKedua}</span>
+
+                  <p className="text-xs font-semibold text-slate-900 mt-0.5 line-clamp-2 leading-snug">
+                    {item.perihal}
+                  </p>
+
+                  <div className="flex items-center gap-1.5 mt-1.5 text-[10px] text-slate-500 flex-wrap">
+                    <span className="bg-slate-100 px-2 py-0.5 rounded-md font-medium text-slate-700">
+                      Pihak: {item.pihakPertama} & {item.pihakKedua}
+                    </span>
+                    {item.kodeKlasifikasi && (
+                      <span className="bg-emerald-50 text-emerald-700 border border-emerald-100 px-1.5 py-0.5 rounded-md font-mono font-semibold">
+                        {item.kodeKlasifikasi}
+                      </span>
+                    )}
                   </div>
                 </div>
               </div>
 
-              {/* Card Actions */}
-              <div className="pt-2 border-t border-slate-100 flex items-center gap-2">
+              {/* Kolom Kanan: Aksi Cepat */}
+              <div className="flex items-center gap-1 shrink-0 self-center">
                 <button
                   onClick={() => setPrintingBast(item)}
-                  className="flex-1 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-colors border border-emerald-200"
+                  className="p-2 text-emerald-600 hover:text-emerald-700 bg-emerald-50 hover:bg-emerald-100 rounded-xl transition-colors border border-emerald-200"
+                  title="Cetak Format BAST"
                 >
                   <Printer className="w-3.5 h-3.5" />
-                  <span>Cetak Format BAST</span>
+                </button>
+                <button
+                  onClick={() => copyToClipboard(item.nomorBAST, item.id)}
+                  className="p-2 text-slate-500 hover:text-emerald-600 bg-slate-50 hover:bg-emerald-50 rounded-xl transition-colors border border-slate-200/80"
+                  title="Salin Nomor BAST"
+                >
+                  {copiedId === item.id ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
                 </button>
                 <button
                   onClick={() => {
@@ -277,10 +270,10 @@ export const BASTView: React.FC<BASTViewProps> = ({
                       onDeleteBAST(item.id);
                     }
                   }}
-                  className="p-2 text-slate-400 hover:text-rose-600 rounded-xl hover:bg-rose-50 border border-slate-100 shrink-0"
+                  className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-colors"
                   title="Hapus"
                 >
-                  <Trash2 className="w-4 h-4" />
+                  <Trash2 className="w-3.5 h-3.5" />
                 </button>
               </div>
             </div>
@@ -451,7 +444,7 @@ export const BASTView: React.FC<BASTViewProps> = ({
                   onChange={(e) => setFormData({ ...formData, kodeKlasifikasi: e.target.value })}
                   className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-hidden"
                 >
-                  {KODE_KLASIFIKASI_BPS.map((k) => (
+                  {sortedKlasifikasi.map((k) => (
                     <option key={k.kode} value={k.kode}>
                       {k.kode} - {k.kategori}: {k.uraian}
                     </option>

@@ -56,6 +56,10 @@ export const compareNomorUrut = (a: number | string, b: number | string): number
   return String(a).localeCompare(String(b), undefined, { numeric: true, sensitivity: 'base' });
 };
 
+export const compareNomorUrutDesc = (a: number | string, b: number | string): number => {
+  return String(b).localeCompare(String(a), undefined, { numeric: true, sensitivity: 'base' });
+};
+
 export const computeNextNomorUrut = (items: { nomorUrut: number | string }[]): number => {
   const maxNo = items.reduce((max, item) => {
     const val = parseFloat(String(item.nomorUrut));
@@ -63,3 +67,28 @@ export const computeNextNomorUrut = (items: { nomorUrut: number | string }[]): n
   }, 0);
   return maxNo + 1;
 };
+
+import { KODE_KLASIFIKASI_BPS } from '../data/seedData';
+import { KodeKlasifikasi } from '../types';
+
+export const getSortedKlasifikasiList = (additionalItems?: Array<{ kodeKlasifikasi?: string }>): KodeKlasifikasi[] => {
+  // If additional items provided, calculate dynamic frequency bonus
+  if (!additionalItems || additionalItems.length === 0) {
+    return KODE_KLASIFIKASI_BPS;
+  }
+  const freq: Record<string, number> = {};
+  additionalItems.forEach(item => {
+    if (item.kodeKlasifikasi) {
+      freq[item.kodeKlasifikasi] = (freq[item.kodeKlasifikasi] || 0) + 1;
+    }
+  });
+
+  return [...KODE_KLASIFIKASI_BPS].sort((a, b) => {
+    const countA = freq[a.kode] || 0;
+    const countB = freq[b.kode] || 0;
+    if (countB !== countA) return countB - countA;
+    // Default to the predefined index in KODE_KLASIFIKASI_BPS
+    return 0;
+  });
+};
+

@@ -15,7 +15,8 @@ import {
   FileText, 
   Target, 
   Users,
-  ExternalLink
+  ExternalLink,
+  Cloud
 } from 'lucide-react';
 import { ActiveTab } from '../types';
 import { exportDataAsJSON } from '../utils/storage';
@@ -25,6 +26,7 @@ interface HeaderProps {
   activeTab: ActiveTab;
   setActiveTab: (tab: ActiveTab) => void;
   onOpenQuickNumber: () => void;
+  onOpenSyncModal: () => void;
   onResetData: () => void;
   counts: {
     suratUmum: number;
@@ -41,6 +43,7 @@ export const Header: React.FC<HeaderProps> = ({
   activeTab,
   setActiveTab,
   onOpenQuickNumber,
+  onOpenSyncModal,
   onResetData,
   counts
 }) => {
@@ -110,6 +113,16 @@ export const Header: React.FC<HeaderProps> = ({
               >
                 <Hash className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 <span>Nomor</span>
+              </button>
+
+              {/* GAS Cloud Sync Button */}
+              <button
+                onClick={onOpenSyncModal}
+                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 sm:px-3 sm:py-2 text-xs sm:text-sm font-bold text-sky-700 hover:text-sky-900 bg-sky-50 hover:bg-sky-100 border border-sky-200/80 rounded-xl transition-all"
+                title="Sinkronisasi Google Sheets (Apps Script)"
+              >
+                <Cloud className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-sky-600" />
+                <span className="hidden sm:inline">Sync Sheet</span>
               </button>
 
               {/* Backup & Export JSON (Desktop) */}
@@ -213,6 +226,17 @@ export const Header: React.FC<HeaderProps> = ({
 
             {/* Drawer Footer Actions */}
             <div className="p-4 border-t border-slate-100 bg-slate-50 space-y-2">
+              <button
+                onClick={() => {
+                  setIsMobileMenuOpen(false);
+                  onOpenSyncModal();
+                }}
+                className="w-full py-2.5 px-3 bg-sky-600 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-2 shadow-xs hover:bg-sky-500"
+              >
+                <Cloud className="w-3.5 h-3.5" />
+                <span>Koneksi Google Apps Script</span>
+              </button>
+
               <button
                 onClick={exportDataAsJSON}
                 className="w-full py-2 px-3 bg-white border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 flex items-center justify-center gap-2 shadow-xs"

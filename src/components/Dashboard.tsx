@@ -16,8 +16,7 @@ import {
   ArrowRight,
   TrendingUp,
   FileSpreadsheet,
-  CheckCircle2,
-  Calendar
+  CheckCircle2
 } from 'lucide-react';
 import { ActiveTab } from '../types';
 import { PORTAL_LINKS } from '../data/seedData';
@@ -353,51 +352,29 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
       </div>
 
-      {/* Info Satker */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
-        <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 border border-slate-200 shadow-xs">
-          <div className="flex items-center gap-2.5 mb-2 sm:mb-3">
-            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-sky-50 border border-sky-100 flex items-center justify-center text-sky-600">
-              <Calendar className="w-4 h-4 sm:w-5 sm:h-5" />
+      {/* Info Satker & Penyimpanan */}
+      <div className="pt-2">
+        <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 border border-slate-200 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600 shrink-0">
+              <CheckCircle2 className="w-5 h-5 sm:w-6 sm:h-6" />
             </div>
             <div>
-              <h5 className="text-xs sm:text-sm font-bold text-slate-900">Tata Kelola Naskah Dinas</h5>
-              <p className="text-[10px] sm:text-xs text-slate-500">Standar Klasifikasi Arsip BPS (Perka BPS)</p>
+              <div className="flex items-center gap-2">
+                <h5 className="text-xs sm:text-base font-bold text-slate-900">Penyimpanan & Sinkronisasi Portal</h5>
+                <span className="text-emerald-700 font-bold bg-emerald-50 text-[10px] sm:text-xs px-2 py-0.5 rounded-md border border-emerald-200">
+                  ● Aktif
+                </span>
+              </div>
+              <p className="text-[11px] sm:text-xs text-slate-500 mt-0.5">
+                Semua penomoran surat tersimpan di peramban, tersinkronisasi dengan Google Sheets resmi, dan dapat di-backup kapan saja.
+              </p>
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-1.5 text-[11px] sm:text-xs font-mono text-slate-700 bg-slate-50 p-2.5 sm:p-3 rounded-xl border border-slate-200">
-            <div>• <span className="font-semibold text-sky-700">PR.710</span>: Undangan</div>
-            <div>• <span className="font-semibold text-sky-700">VS.110</span>: Susenas</div>
-            <div>• <span className="font-semibold text-sky-700">VS.210</span>: Sakernas</div>
-            <div>• <span className="font-semibold text-sky-700">VS.330</span>: Distribusi</div>
-            <div>• <span className="font-semibold text-sky-700">PL.300</span>: Pengadaan</div>
-            <div>• <span className="font-semibold text-sky-700">KU.320</span>: Belanja</div>
-          </div>
-        </div>
 
-        <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 border border-slate-200 shadow-xs flex flex-col justify-between">
-          <div>
-            <div className="flex items-center gap-2.5 mb-2 sm:mb-3">
-              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600">
-                <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5" />
-              </div>
-              <div>
-                <h5 className="text-xs sm:text-sm font-bold text-slate-900">Penyimpanan & Cadangan</h5>
-                <p className="text-[10px] sm:text-xs text-slate-500">Tersimpan lokal & dapat diekspor kapan saja</p>
-              </div>
-            </div>
-            <p className="text-[11px] sm:text-xs text-slate-600 leading-relaxed mb-3">
-              Semua penomoran surat tersimpan di peramban dan dapat di-backup ke file CSV / JSON.
-            </p>
-          </div>
-
-          <div className="flex items-center justify-between pt-2 border-t border-slate-100 text-[11px]">
-            <span className="font-medium text-slate-500">
-              Satker: <strong>BPS Selayar (7301)</strong>
-            </span>
-            <span className="text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
-              ● Aktif
-            </span>
+          <div className="flex items-center gap-3 self-end sm:self-center text-[11px] sm:text-xs text-slate-500 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-200">
+            <span>Satuan Kerja:</span>
+            <strong className="text-slate-900 font-black">BPS Kab. Kepulauan Selayar (7301)</strong>
           </div>
         </div>
       </div>

@@ -12,7 +12,7 @@ import {
 } from 'lucide-react';
 import { FormPermintaan } from '../types';
 import { PORTAL_LINKS } from '../data/seedData';
-import { generateNomorFormPermintaan, formatTanggalIndonesia, formatRupiah, compareNomorUrut, computeNextNomorUrut } from '../utils/formatters';
+import { generateNomorFormPermintaan, formatTanggalIndonesia, formatRupiah, compareNomorUrutDesc, computeNextNomorUrut } from '../utils/formatters';
 import { exportTableToCSV } from '../utils/storage';
 
 interface FormPermintaanViewProps {
@@ -103,7 +103,7 @@ export const FormPermintaanView: React.FC<FormPermintaanViewProps> = ({
 
         return matchSearch && matchTipe;
       })
-      .sort((a, b) => compareNomorUrut(a.nomorUrut, b.nomorUrut));
+      .sort((a, b) => compareNomorUrutDesc(a.nomorUrut, b.nomorUrut));
   }, [formList, searchTerm, filterTipe]);
 
   const handleExportCSV = () => {
@@ -202,79 +202,62 @@ export const FormPermintaanView: React.FC<FormPermintaanViewProps> = ({
         </div>
       </div>
 
-      {/* Mobile Card View (md:hidden) */}
-      <div className="md:hidden space-y-3">
+      {/* Mobile Row View (md:hidden) */}
+      <div className="md:hidden bg-white rounded-2xl border border-slate-200 shadow-xs divide-y divide-slate-100 overflow-hidden">
         {filteredList.length === 0 ? (
-          <div className="bg-white rounded-2xl p-8 text-center text-slate-400 text-xs border border-slate-200">
+          <div className="p-8 text-center text-slate-400 text-xs">
             Tidak ada form permintaan yang sesuai filter.
           </div>
         ) : (
           filteredList.map((item) => (
             <div
               key={item.id}
-              className="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs space-y-2.5"
+              className="p-3.5 hover:bg-slate-50/70 transition-colors flex items-start justify-between gap-3"
             >
-              {/* Card Header */}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-1.5">
-                  <span className="w-6 h-6 rounded-full bg-slate-100 text-slate-700 text-[11px] font-mono font-bold flex items-center justify-center">
-                    {item.nomorUrut}
-                  </span>
-                  <span className="text-[11px] text-slate-500 font-medium">
-                    {item.tanggal}
-                  </span>
-                </div>
-
-                <span className="inline-block px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-50 text-indigo-800 border border-indigo-200">
-                  {item.tipeForm}
+              {/* Kolom Kiri: Badge & Info Form */}
+              <div className="flex items-start gap-2.5 min-w-0 flex-1">
+                <span className="w-7 h-7 rounded-xl bg-slate-100 text-slate-800 text-[11px] font-mono font-bold flex items-center justify-center shrink-0 border border-slate-200/80 mt-0.5">
+                  {item.nomorUrut}
                 </span>
-              </div>
 
-              {/* Card Body */}
-              <div>
-                <div className="flex items-center justify-between">
-                  <span className="font-mono font-black text-sm text-indigo-950 tracking-tight break-all">
-                    {item.nomorForm}
-                  </span>
-                  <button
-                    onClick={() => copyToClipboard(item.nomorForm, item.id)}
-                    className="p-1 text-slate-400 hover:text-indigo-600 rounded-md shrink-0 ml-2"
-                    title="Salin Nomor Form"
-                  >
-                    {copiedId === item.id ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
-                  </button>
-                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <span className="font-mono font-bold text-xs text-indigo-950 tracking-tight">
+                      {item.nomorForm}
+                    </span>
+                    <span className="text-[10px] text-slate-400 font-medium">• {item.tanggal}</span>
+                  </div>
 
-                <p className="text-xs font-bold text-slate-900 mt-1 leading-snug">
-                  {item.perihal}
-                </p>
+                  <p className="text-xs font-semibold text-slate-900 mt-0.5 line-clamp-2 leading-snug">
+                    {item.perihal}
+                  </p>
 
-                {(item.pemohon || item.estimasiBiaya) && (
-                  <div className="mt-2 text-[11px] text-slate-600 bg-slate-50 rounded-xl p-2.5 border border-slate-100 space-y-1">
+                  <div className="flex items-center gap-1.5 mt-1.5 text-[10px] text-slate-500 flex-wrap">
+                    <span className="inline-block px-2 py-0.5 rounded-md font-semibold bg-indigo-50 text-indigo-800 border border-indigo-200">
+                      {item.tipeForm}
+                    </span>
                     {item.pemohon && (
-                      <div>
-                        <span className="text-slate-400 font-medium">Pemohon: </span>
-                        <span className="font-semibold text-slate-800">{item.pemohon}</span>
-                      </div>
+                      <span className="bg-slate-100 px-2 py-0.5 rounded-md font-medium text-slate-700">
+                        {item.pemohon}
+                      </span>
                     )}
                     {item.estimasiBiaya ? (
-                      <div>
-                        <span className="text-slate-400 font-medium">Estimasi Biaya: </span>
-                        <span className="font-semibold text-emerald-700">{formatRupiah(item.estimasiBiaya)}</span>
-                      </div>
+                      <span className="text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
+                        {formatRupiah(item.estimasiBiaya)}
+                      </span>
                     ) : null}
                   </div>
-                )}
+                </div>
               </div>
 
-              {/* Card Actions */}
-              <div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-2">
+              {/* Kolom Kanan: Aksi Cepat */}
+              <div className="flex items-center gap-1 shrink-0 self-center">
                 <button
                   onClick={() => copyToClipboard(item.nomorForm, item.id)}
-                  className="flex-1 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-800 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-colors border border-indigo-200"
+                  className="p-2 text-slate-500 hover:text-indigo-600 bg-slate-50 hover:bg-indigo-50 rounded-xl transition-colors border border-slate-200/80"
+                  title="Salin Nomor Form"
                 >
-                  <Copy className="w-3.5 h-3.5" />
-                  <span>{copiedId === item.id ? 'Tersalin!' : 'Salin Nomor Form'}</span>
+                  {copiedId === item.id ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
                 </button>
                 <button
                   onClick={() => {
@@ -282,10 +265,10 @@ export const FormPermintaanView: React.FC<FormPermintaanViewProps> = ({
                       onDeleteForm(item.id);
                     }
                   }}
-                  className="p-2 text-slate-400 hover:text-rose-600 rounded-xl hover:bg-rose-50 border border-slate-100 shrink-0"
+                  className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-colors"
                   title="Hapus"
                 >
-                  <Trash2 className="w-4 h-4" />
+                  <Trash2 className="w-3.5 h-3.5" />
                 </button>
               </div>
             </div>

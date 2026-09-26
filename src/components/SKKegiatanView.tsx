@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 import { SKKegiatan } from '../types';
 import { PORTAL_LINKS } from '../data/seedData';
-import { generateNomorSK, formatTanggalIndonesia, compareNomorUrut, computeNextNomorUrut } from '../utils/formatters';
+import { generateNomorSK, formatTanggalIndonesia, compareNomorUrutDesc, computeNextNomorUrut } from '../utils/formatters';
 import { exportTableToCSV } from '../utils/storage';
 
 interface SKKegiatanViewProps {
@@ -102,7 +102,7 @@ export const SKKegiatanView: React.FC<SKKegiatanViewProps> = ({
 
         return matchSearch && matchFungsi;
       })
-      .sort((a, b) => compareNomorUrut(a.nomorUrut, b.nomorUrut));
+      .sort((a, b) => compareNomorUrutDesc(a.nomorUrut, b.nomorUrut));
   }, [skList, searchTerm, filterSubFungsi]);
 
   const handleExportCSV = () => {
@@ -201,91 +201,78 @@ export const SKKegiatanView: React.FC<SKKegiatanViewProps> = ({
         </div>
       </div>
 
-      {/* Mobile Card View (md:hidden) */}
-      <div className="md:hidden space-y-3">
+      {/* Mobile Row View (md:hidden) */}
+      <div className="md:hidden bg-white rounded-2xl border border-slate-200 shadow-xs divide-y divide-slate-100 overflow-hidden">
         {filteredList.length === 0 ? (
-          <div className="bg-white rounded-2xl p-8 text-center text-slate-400 text-xs border border-slate-200">
+          <div className="p-8 text-center text-slate-400 text-xs">
             Tidak ada SK Kegiatan yang sesuai kriteria.
           </div>
         ) : (
           filteredList.map((item) => (
             <div
               key={item.id}
-              className="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs space-y-2.5"
+              className="p-3.5 hover:bg-slate-50/70 transition-colors flex items-start justify-between gap-3"
             >
-              {/* Card Header */}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-1.5">
-                  <span className="w-6 h-6 rounded-full bg-slate-100 text-slate-700 text-[11px] font-mono font-bold flex items-center justify-center">
-                    {item.nomorUrut}
-                  </span>
-                  <span className="text-[11px] text-slate-500 font-medium">
-                    {item.tanggal}
-                  </span>
-                </div>
-
-                <span className="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200">
-                  {item.subFungsi}
+              {/* Kolom Kiri: Badge & Info SK */}
+              <div className="flex items-start gap-2.5 min-w-0 flex-1">
+                <span className="w-7 h-7 rounded-xl bg-amber-50 text-amber-900 text-[11px] font-mono font-bold flex items-center justify-center shrink-0 border border-amber-200 mt-0.5">
+                  {item.nomorUrut}
                 </span>
-              </div>
 
-              {/* Card Body */}
-              <div>
-                <div className="flex items-center justify-between">
-                  <span className="font-mono font-black text-sm text-amber-950 tracking-tight break-all">
-                    {item.nomorSK}
-                  </span>
-                  <button
-                    onClick={() => copyToClipboard(item.nomorSK, item.id)}
-                    className="p-1 text-slate-400 hover:text-amber-600 rounded-md shrink-0 ml-2"
-                    title="Salin Nomor SK"
-                  >
-                    {copiedId === item.id ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
-                  </button>
-                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <span className="font-mono font-bold text-xs text-amber-950 tracking-tight">
+                      {item.nomorSK}
+                    </span>
+                    <span className="text-[10px] text-slate-400 font-medium">• {item.tanggal}</span>
+                  </div>
 
-                <p className="text-xs font-bold text-slate-900 mt-1 leading-snug">
-                  {item.uraian}
-                </p>
+                  <p className="text-xs font-semibold text-slate-900 mt-0.5 line-clamp-2 leading-snug">
+                    {item.uraian}
+                  </p>
 
-                {/* Berkas SK Word & PDF */}
-                <div className="mt-2.5 flex items-center gap-2 flex-wrap">
-                  {item.wordUrl && (
-                    <a
-                      href={item.wordUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 transition-colors"
-                    >
-                      <FileText className="w-3.5 h-3.5 text-blue-600" />
-                      <span>Dokumen Word</span>
-                    </a>
-                  )}
-                  {item.pdfUrl && (
-                    <a
-                      href={item.pdfUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 transition-colors"
-                    >
-                      <FileDown className="w-3.5 h-3.5 text-rose-600" />
-                      <span>Dokumen PDF</span>
-                    </a>
-                  )}
-                  {!item.wordUrl && !item.pdfUrl && (
-                    <span className="text-[11px] text-slate-400 italic">Belum ada tautan berkas</span>
-                  )}
+                  <div className="flex items-center gap-2 mt-2 flex-wrap">
+                    <span className="inline-block px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200">
+                      {item.subFungsi}
+                    </span>
+
+                    {/* Kolom Berkas Word & PDF terpisah rapi */}
+                    {item.wordUrl && (
+                      <a
+                        href={item.wordUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200"
+                        title="Buka Dokumen Word"
+                      >
+                        <FileText className="w-3 h-3 text-blue-600" />
+                        <span>Word</span>
+                      </a>
+                    )}
+                    {item.pdfUrl && (
+                      <a
+                        href={item.pdfUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold bg-rose-50 text-rose-700 border border-rose-200"
+                        title="Buka Dokumen PDF"
+                      >
+                        <FileDown className="w-3 h-3 text-rose-600" />
+                        <span>PDF</span>
+                      </a>
+                    )}
+                  </div>
                 </div>
               </div>
 
-              {/* Card Actions */}
-              <div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-2">
+              {/* Kolom Kanan: Aksi Cepat */}
+              <div className="flex items-center gap-1 shrink-0 self-center">
                 <button
                   onClick={() => copyToClipboard(item.nomorSK, item.id)}
-                  className="flex-1 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-800 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-colors border border-amber-200"
+                  className="p-2 text-slate-500 hover:text-amber-600 bg-slate-50 hover:bg-amber-50 rounded-xl transition-colors border border-slate-200/80"
+                  title="Salin Nomor SK"
                 >
-                  <Copy className="w-3.5 h-3.5" />
-                  <span>{copiedId === item.id ? 'Tersalin!' : 'Salin Nomor SK'}</span>
+                  {copiedId === item.id ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
                 </button>
                 <button
                   onClick={() => {
@@ -293,10 +280,10 @@ export const SKKegiatanView: React.FC<SKKegiatanViewProps> = ({
                       onDeleteSK(item.id);
                     }
                   }}
-                  className="p-2 text-slate-400 hover:text-rose-600 rounded-xl hover:bg-rose-50 border border-slate-100 shrink-0"
+                  className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-colors"
                   title="Hapus"
                 >
-                  <Trash2 className="w-4 h-4" />
+                  <Trash2 className="w-3.5 h-3.5" />
                 </button>
               </div>
             </div>
@@ -314,15 +301,16 @@ export const SKKegiatanView: React.FC<SKKegiatanViewProps> = ({
                 <th className="py-3.5 px-4 w-44">Nomor SK</th>
                 <th className="py-3.5 px-4 w-32">Tanggal</th>
                 <th className="py-3.5 px-4">Uraian SK Kegiatan</th>
-                <th className="py-3.5 px-4 w-32">Sub / Fungsi</th>
-                <th className="py-3.5 px-4 w-48">Berkas SK (Word & PDF)</th>
+                <th className="py-3.5 px-4 w-28">Sub / Fungsi</th>
+                <th className="py-3.5 px-3 w-28 text-center">Berkas Word</th>
+                <th className="py-3.5 px-3 w-28 text-center">Berkas PDF</th>
                 <th className="py-3.5 px-4 w-20 text-center">Aksi</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {filteredList.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="py-12 text-center text-slate-400">
+                  <td colSpan={8} className="py-12 text-center text-slate-400">
                     Tidak ada SK Kegiatan yang sesuai kriteria.
                   </td>
                 </tr>
@@ -359,38 +347,39 @@ export const SKKegiatanView: React.FC<SKKegiatanViewProps> = ({
                         {item.subFungsi}
                       </span>
                     </td>
-                    <td className="py-3 px-4">
-                      <div className="flex items-center gap-2">
-                        {item.wordUrl ? (
-                          <a
-                            href={item.wordUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 transition-colors shadow-2xs"
-                            title="Buka / Unduh Dokumen Word"
-                          >
-                            <FileText className="w-3.5 h-3.5 text-blue-600" />
-                            <span>Word</span>
-                          </a>
-                        ) : (
-                          <span className="text-slate-300 text-xs">-</span>
-                        )}
-
-                        {item.pdfUrl ? (
-                          <a
-                            href={item.pdfUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 transition-colors shadow-2xs"
-                            title="Buka / Unduh Dokumen PDF"
-                          >
-                            <FileDown className="w-3.5 h-3.5 text-rose-600" />
-                            <span>PDF</span>
-                          </a>
-                        ) : (
-                          <span className="text-slate-300 text-xs">-</span>
-                        )}
-                      </div>
+                    {/* Kolom Berkas Word */}
+                    <td className="py-3 px-3 text-center">
+                      {item.wordUrl ? (
+                        <a
+                          href={item.wordUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-bold bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 transition-colors shadow-2xs"
+                          title="Buka / Unduh Dokumen Word"
+                        >
+                          <FileText className="w-3.5 h-3.5 text-blue-600" />
+                          <span>Word</span>
+                        </a>
+                      ) : (
+                        <span className="text-slate-300 font-mono text-xs">-</span>
+                      )}
+                    </td>
+                    {/* Kolom Berkas PDF */}
+                    <td className="py-3 px-3 text-center">
+                      {item.pdfUrl ? (
+                        <a
+                          href={item.pdfUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-bold bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 transition-colors shadow-2xs"
+                          title="Buka / Unduh Dokumen PDF"
+                        >
+                          <FileDown className="w-3.5 h-3.5 text-rose-600" />
+                          <span>PDF</span>
+                        </a>
+                      ) : (
+                        <span className="text-slate-300 font-mono text-xs">-</span>
+                      )}
                     </td>
                     <td className="py-3 px-4 text-center">
                       <button

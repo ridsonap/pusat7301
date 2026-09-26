@@ -19,15 +19,15 @@ import {
   INITIAL_SKP
 } from '../data/seedData';
 
-const STORAGE_KEYS = {
-  PEGAWAI: 'pusat7301_v2_pegawai',
-  SURAT_UMUM: 'pusat7301_v2_surat_umum',
-  SURAT_TUGAS: 'pusat7301_v2_surat_tugas',
-  SK_KEGIATAN: 'pusat7301_v2_sk_kegiatan',
-  BAST: 'pusat7301_v2_bast',
-  FORM_PERMINTAAN: 'pusat7301_v2_form_permintaan',
-  SURAT_PPK: 'pusat7301_v2_surat_ppk',
-  SKP: 'pusat7301_v2_skp',
+export const STORAGE_KEYS = {
+  PEGAWAI: 'pusat7301_v3_pegawai',
+  SURAT_UMUM: 'pusat7301_v3_surat_umum',
+  SURAT_TUGAS: 'pusat7301_v3_surat_tugas',
+  SK_KEGIATAN: 'pusat7301_v3_sk_kegiatan',
+  BAST: 'pusat7301_v3_bast',
+  FORM_PERMINTAAN: 'pusat7301_v3_form_permintaan',
+  SURAT_PPK: 'pusat7301_v3_surat_ppk',
+  SKP: 'pusat7301_v3_skp',
 };
 
 export const getStoredData = <T>(key: string, initialData: T): T => {

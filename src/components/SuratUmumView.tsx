@@ -13,7 +13,7 @@ import {
 } from 'lucide-react';
 import { SuratUmum } from '../types';
 import { KODE_KLASIFIKASI_BPS, PORTAL_LINKS } from '../data/seedData';
-import { generateNomorSuratUmum, formatTanggalIndonesia, compareNomorUrut, computeNextNomorUrut } from '../utils/formatters';
+import { generateNomorSuratUmum, formatTanggalIndonesia, compareNomorUrutDesc, computeNextNomorUrut, getSortedKlasifikasiList } from '../utils/formatters';
 import { exportTableToCSV } from '../utils/storage';
 
 interface SuratUmumViewProps {
@@ -33,6 +33,10 @@ export const SuratUmumView: React.FC<SuratUmumViewProps> = ({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
+  const sortedKlasifikasi = useMemo(() => {
+    return getSortedKlasifikasiList(suratList);
+  }, [suratList]);
+
   const nextNomorUrut = useMemo(() => {
     return computeNextNomorUrut(suratList);
   }, [suratList]);
@@ -42,7 +46,7 @@ export const SuratUmumView: React.FC<SuratUmumViewProps> = ({
     tanggal: new Date().toISOString().slice(0, 10),
     jenisSurat: 'Internal' as 'Internal' | 'Eksternal',
     tujuan: '',
-    kodeKlasifikasi: 'PR.710',
+    kodeKlasifikasi: 'VS.330',
     perihal: '',
     ringkasan: '',
   });
@@ -53,7 +57,7 @@ export const SuratUmumView: React.FC<SuratUmumViewProps> = ({
       tanggal: new Date().toISOString().slice(0, 10),
       jenisSurat: 'Internal',
       tujuan: '',
-      kodeKlasifikasi: 'PR.710',
+      kodeKlasifikasi: 'VS.330',
       perihal: '',
       ringkasan: '',
     });
@@ -106,7 +110,7 @@ export const SuratUmumView: React.FC<SuratUmumViewProps> = ({
 
         return matchSearch && matchJenis && matchKlasifikasi;
       })
-      .sort((a, b) => compareNomorUrut(a.nomorUrut, b.nomorUrut));
+      .sort((a, b) => compareNomorUrutDesc(a.nomorUrut, b.nomorUrut));
   }, [suratList, searchTerm, filterJenis, filterKlasifikasi]);
 
   const handleExportCSV = () => {
@@ -239,8 +243,8 @@ export const SuratUmumView: React.FC<SuratUmumViewProps> = ({
             onChange={(e) => setFilterKlasifikasi(e.target.value)}
             className="w-full sm:w-auto bg-slate-50 border border-slate-200 text-slate-700 text-xs rounded-xl px-3 py-2 font-medium focus:outline-hidden focus:ring-2 focus:ring-sky-500"
           >
-            <option value="Semua">Semua Klasifikasi</option>
-            {KODE_KLASIFIKASI_BPS.map((k) => (
+            <option value="Semua">Semua Klasifikasi (Sering Digunakan)</option>
+            {sortedKlasifikasi.map((k) => (
               <option key={k.kode} value={k.kode}>
                 {k.kode} - {k.kategori}
               </option>
@@ -250,80 +254,62 @@ export const SuratUmumView: React.FC<SuratUmumViewProps> = ({
 
       </div>
 
-      {/* Mobile Card View (md:hidden) */}
-      <div className="md:hidden space-y-3">
+      {/* Mobile Row View (md:hidden) */}
+      <div className="md:hidden bg-white rounded-2xl border border-slate-200 shadow-xs divide-y divide-slate-100 overflow-hidden">
         {filteredList.length === 0 ? (
-          <div className="bg-white rounded-2xl p-8 text-center text-slate-400 text-xs border border-slate-200">
+          <div className="p-8 text-center text-slate-400 text-xs">
             Tidak ada surat keluar yang sesuai dengan pencarian atau filter.
           </div>
         ) : (
           filteredList.map((item) => (
             <div
               key={item.id}
-              className="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs space-y-2.5"
+              className="p-3.5 hover:bg-slate-50/70 transition-colors flex items-start justify-between gap-3"
             >
-              {/* Card Header */}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-1.5">
-                  <span className="w-6 h-6 rounded-full bg-slate-100 text-slate-700 text-[11px] font-mono font-bold flex items-center justify-center">
-                    {item.nomorUrut}
-                  </span>
-                  <span className="text-[11px] text-slate-500 font-medium">
-                    {item.tanggal}
-                  </span>
-                </div>
+              {/* Kolom Kiri: Badge Nomor Urut & Informasi */}
+              <div className="flex items-start gap-2.5 min-w-0 flex-1">
+                <span className="w-7 h-7 rounded-xl bg-slate-100 text-slate-800 text-[11px] font-mono font-bold flex items-center justify-center shrink-0 border border-slate-200/80 mt-0.5">
+                  {item.nomorUrut}
+                </span>
 
-                <div className="flex items-center gap-1.5">
-                  <span
-                    className={`inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
-                      item.jenisSurat === 'Internal'
-                        ? 'bg-blue-50 text-blue-700 border border-blue-200'
-                        : 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                    }`}
-                  >
-                    {item.jenisSurat}
-                  </span>
-                  {item.kodeKlasifikasi && (
-                    <span className="inline-block px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-slate-100 text-slate-600 border border-slate-200">
-                      {item.kodeKlasifikasi}
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <span className="font-mono font-bold text-xs text-sky-900 tracking-tight">
+                      {item.nomorSurat}
                     </span>
-                  )}
+                    <span className="text-[10px] text-slate-400 font-medium">• {item.tanggal}</span>
+                  </div>
+
+                  <p className="text-xs font-semibold text-slate-900 mt-0.5 line-clamp-2 leading-snug">
+                    {item.perihal}
+                  </p>
+
+                  <div className="flex items-center gap-1.5 mt-1.5 text-[10px] text-slate-500 flex-wrap">
+                    <span className="bg-slate-100 px-2 py-0.5 rounded-md font-medium text-slate-700">
+                      Tujuan: {item.tujuan}
+                    </span>
+                    {item.kodeKlasifikasi && (
+                      <span className="bg-sky-50 text-sky-700 border border-sky-100 px-1.5 py-0.5 rounded-md font-mono font-semibold">
+                        {item.kodeKlasifikasi}
+                      </span>
+                    )}
+                    <span className={`px-1.5 py-0.5 rounded-md font-semibold ${
+                      item.jenisSurat === 'Internal' ? 'bg-blue-50 text-blue-700' : 'bg-emerald-50 text-emerald-700'
+                    }`}>
+                      {item.jenisSurat}
+                    </span>
+                  </div>
                 </div>
               </div>
 
-              {/* Card Body */}
-              <div>
-                <div className="flex items-center justify-between">
-                  <span className="font-mono font-black text-sm text-sky-900 tracking-tight break-all">
-                    {item.nomorSurat}
-                  </span>
-                  <button
-                    onClick={() => copyToClipboard(item.nomorSurat, item.id)}
-                    className="p-1 text-slate-400 hover:text-sky-600 rounded-md shrink-0 ml-2"
-                    title="Salin Nomor Surat"
-                  >
-                    {copiedId === item.id ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
-                  </button>
-                </div>
-
-                <p className="text-xs font-bold text-slate-900 mt-1 leading-snug">
-                  {item.perihal}
-                </p>
-
-                <div className="mt-2 text-[11px] text-slate-600 bg-slate-50 rounded-xl p-2.5 border border-slate-100">
-                  <span className="text-slate-400 font-medium">Tujuan: </span>
-                  <span className="font-semibold text-slate-800">{item.tujuan}</span>
-                </div>
-              </div>
-
-              {/* Card Actions */}
-              <div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-2">
+              {/* Kolom Kanan: Tombol Aksi Cepat */}
+              <div className="flex items-center gap-1 shrink-0 self-center">
                 <button
                   onClick={() => copyToClipboard(item.nomorSurat, item.id)}
-                  className="flex-1 py-1.5 bg-sky-50 hover:bg-sky-100 text-sky-700 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-colors border border-sky-200"
+                  className="p-2 text-slate-500 hover:text-sky-600 bg-slate-50 hover:bg-sky-50 rounded-xl transition-colors border border-slate-200/80"
+                  title="Salin Nomor Surat"
                 >
-                  <Copy className="w-3.5 h-3.5" />
-                  <span>{copiedId === item.id ? 'Tersalin!' : 'Salin Nomor Surat'}</span>
+                  {copiedId === item.id ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
                 </button>
                 <button
                   onClick={() => {
@@ -331,10 +317,10 @@ export const SuratUmumView: React.FC<SuratUmumViewProps> = ({
                       onDeleteSurat(item.id);
                     }
                   }}
-                  className="p-2 text-slate-400 hover:text-rose-600 rounded-xl hover:bg-rose-50 border border-slate-100 shrink-0"
+                  className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-colors"
                   title="Hapus"
                 >
-                  <Trash2 className="w-4 h-4" />
+                  <Trash2 className="w-3.5 h-3.5" />
                 </button>
               </div>
             </div>
@@ -564,7 +550,7 @@ export const SuratUmumView: React.FC<SuratUmumViewProps> = ({
                   onChange={(e) => setFormData({ ...formData, kodeKlasifikasi: e.target.value })}
                   className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs sm:text-sm font-medium focus:ring-2 focus:ring-sky-500 focus:outline-hidden"
                 >
-                  {KODE_KLASIFIKASI_BPS.map((k) => (
+                  {sortedKlasifikasi.map((k) => (
                     <option key={k.kode} value={k.kode}>
                       {k.kode} - {k.kategori}: {k.uraian}
                     </option>

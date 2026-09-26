@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ActiveTab, SuratUmum, SuratTugas, SKKegiatan, BAST, FormPermintaan, SuratPPK, SKPItem, Pegawai } from './types';
-import { loadAllState, saveStoredData, resetAllData } from './utils/storage';
+import { loadAllState, saveStoredData, resetAllData, STORAGE_KEYS } from './utils/storage';
 import { Header } from './components/Header';
 import { Navigation } from './components/Navigation';
 import { Dashboard } from './components/Dashboard';
@@ -15,45 +15,47 @@ import { DatabasePegawaiView } from './components/DatabasePegawaiView';
 import { DokumentasiView } from './components/DokumentasiView';
 import { SPMDigitalView } from './components/SPMDigitalView';
 import { QuickNumberModal } from './components/QuickNumberModal';
+import { SyncModal } from './components/SyncModal';
 
 export const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<ActiveTab>('dashboard');
   const [isQuickNumberOpen, setIsQuickNumberOpen] = useState(false);
+  const [isSyncModalOpen, setIsSyncModalOpen] = useState(false);
 
   // Application Data States
   const [state, setState] = useState(() => loadAllState());
 
   // Save to localStorage when state changes
   useEffect(() => {
-    saveStoredData('pusat7301_pegawai', state.pegawai);
+    saveStoredData(STORAGE_KEYS.PEGAWAI, state.pegawai);
   }, [state.pegawai]);
 
   useEffect(() => {
-    saveStoredData('pusat7301_surat_umum', state.suratUmum);
+    saveStoredData(STORAGE_KEYS.SURAT_UMUM, state.suratUmum);
   }, [state.suratUmum]);
 
   useEffect(() => {
-    saveStoredData('pusat7301_surat_tugas', state.suratTugas);
+    saveStoredData(STORAGE_KEYS.SURAT_TUGAS, state.suratTugas);
   }, [state.suratTugas]);
 
   useEffect(() => {
-    saveStoredData('pusat7301_sk_kegiatan', state.skKegiatan);
+    saveStoredData(STORAGE_KEYS.SK_KEGIATAN, state.skKegiatan);
   }, [state.skKegiatan]);
 
   useEffect(() => {
-    saveStoredData('pusat7301_bast', state.bast);
+    saveStoredData(STORAGE_KEYS.BAST, state.bast);
   }, [state.bast]);
 
   useEffect(() => {
-    saveStoredData('pusat7301_form_permintaan', state.formPermintaan);
+    saveStoredData(STORAGE_KEYS.FORM_PERMINTAAN, state.formPermintaan);
   }, [state.formPermintaan]);
 
   useEffect(() => {
-    saveStoredData('pusat7301_surat_ppk', state.suratPPK);
+    saveStoredData(STORAGE_KEYS.SURAT_PPK, state.suratPPK);
   }, [state.suratPPK]);
 
   useEffect(() => {
-    saveStoredData('pusat7301_skp', state.skp);
+    saveStoredData(STORAGE_KEYS.SKP, state.skp);
   }, [state.skp]);
 
   // Counts for Badges
@@ -194,6 +196,19 @@ export const App: React.FC = () => {
     }
   };
 
+  const handleDataSynced = (syncedData: any) => {
+    setState(prev => ({
+      ...prev,
+      suratUmum: syncedData.suratUmum || prev.suratUmum,
+      suratTugas: syncedData.suratTugas || prev.suratTugas,
+      skKegiatan: syncedData.skKegiatan || prev.skKegiatan,
+      bast: syncedData.bast || prev.bast,
+      formPermintaan: syncedData.formPermintaan || prev.formPermintaan,
+      suratPPK: syncedData.suratPPK || prev.suratPPK,
+      pegawai: syncedData.pegawai || prev.pegawai,
+    }));
+  };
+
   const handleGlobalSearch = (query: string) => {
     setActiveTab('surat-umum');
   };
@@ -206,6 +221,7 @@ export const App: React.FC = () => {
         activeTab={activeTab}
         setActiveTab={setActiveTab}
         onOpenQuickNumber={() => setIsQuickNumberOpen(true)}
+        onOpenSyncModal={() => setIsSyncModalOpen(true)}
         onResetData={handleResetData}
         counts={counts}
       />
@@ -336,6 +352,13 @@ export const App: React.FC = () => {
           setActiveTab(tab);
           setIsQuickNumberOpen(false);
         }}
+      />
+
+      {/* Google Apps Script Sync Modal */}
+      <SyncModal
+        isOpen={isSyncModalOpen}
+        onClose={() => setIsSyncModalOpen(false)}
+        onDataSynced={handleDataSynced}
       />
 
     </div>
