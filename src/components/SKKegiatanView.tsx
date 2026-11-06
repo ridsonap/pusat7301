@@ -26,7 +26,8 @@ import {
   compareNomorUrutDesc, 
   computeNextNomorUrut,
   parseTanggalToInputFormat,
-  getTahunFromTanggal
+  getTahunFromTanggal,
+  isSlotEmpty
 } from '../utils/formatters';
 import { exportTableToCSV } from '../utils/storage';
 
@@ -329,40 +330,50 @@ export const SKKegiatanView: React.FC<SKKegiatanViewProps> = ({
                     <span className="text-[10px] text-slate-400 font-medium">• {item.tanggal}</span>
                   </div>
 
-                  <p className="text-xs text-slate-800 mt-0.5 line-clamp-2">
-                    {item.uraian}
-                  </p>
+                  {isSlotEmpty(item) ? (
+                    <p className="mt-1">
+                      <span className="italic text-amber-800 bg-amber-50 px-1.5 py-0.5 rounded text-[10px] border border-amber-200 inline-block font-medium">
+                        Nomor Kosong (Tersedia)
+                      </span>
+                    </p>
+                  ) : (
+                    <>
+                      <p className="text-xs text-slate-800 mt-0.5 line-clamp-2">
+                        {item.uraian}
+                      </p>
 
-                  <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
-                    <span className="inline-block px-1.5 py-0.5 rounded text-[10px] font-medium bg-amber-50 text-amber-800 border border-amber-200">
-                      {item.subFungsi}
-                    </span>
+                      <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
+                        <span className="inline-block px-1.5 py-0.5 rounded text-[10px] font-medium bg-amber-50 text-amber-800 border border-amber-200">
+                          {item.subFungsi}
+                        </span>
 
-                    {item.wordUrl && (
-                      <a
-                        href={isValidHttpUrl(item.wordUrl) ? item.wordUrl : undefined}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-blue-50 text-blue-700 border border-blue-200"
-                        title="Buka Dokumen Word"
-                      >
-                        <FileText className="w-3 h-3 text-blue-600" />
-                        <span>Word</span>
-                      </a>
-                    )}
-                    {item.pdfUrl && (
-                      <a
-                        href={isValidHttpUrl(item.pdfUrl) ? item.pdfUrl : undefined}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-rose-50 text-rose-700 border border-rose-200"
-                        title="Buka Dokumen PDF"
-                      >
-                        <FileDown className="w-3 h-3 text-rose-600" />
-                        <span>PDF</span>
-                      </a>
-                    )}
-                  </div>
+                        {item.wordUrl && (
+                          <a
+                            href={isValidHttpUrl(item.wordUrl) ? item.wordUrl : undefined}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-blue-50 text-blue-700 border border-blue-200"
+                            title="Buka Dokumen Word"
+                          >
+                            <FileText className="w-3 h-3 text-blue-600" />
+                            <span>Word</span>
+                          </a>
+                        )}
+                        {item.pdfUrl && (
+                          <a
+                            href={isValidHttpUrl(item.pdfUrl) ? item.pdfUrl : undefined}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-rose-50 text-rose-700 border border-rose-200"
+                            title="Buka Dokumen PDF"
+                          >
+                            <FileDown className="w-3 h-3 text-rose-600" />
+                            <span>PDF</span>
+                          </a>
+                        )}
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
 
@@ -370,20 +381,28 @@ export const SKKegiatanView: React.FC<SKKegiatanViewProps> = ({
                 <button
                   type="button"
                   onClick={() => handleOpenEdit(item)}
-                  className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors"
-                  title="Edit"
+                  className={`p-1.5 rounded-lg transition-colors ${
+                    isSlotEmpty(item)
+                      ? 'text-amber-700 hover:text-amber-800 bg-amber-50 hover:bg-amber-100 border border-amber-200'
+                      : 'text-slate-400 hover:text-slate-700 hover:bg-slate-100'
+                  }`}
+                  title={isSlotEmpty(item) ? "Gunakan Nomor Ini" : "Edit"}
                 >
                   <Pencil className="w-3.5 h-3.5" />
                 </button>
                 <button
                   type="button"
                   onClick={() => {
-                    if (confirm(`Yakin ingin menghapus SK ${item.nomorSK}?`)) {
+                    const empty = isSlotEmpty(item);
+                    const msg = empty
+                      ? `Hapus permanen nomor ${item.nomorSK}?`
+                      : `Kosongkan SK ${item.nomorSK}?\nNomor ini tetap tersimpan dan otomatis diberikan jika ada pengajuan di tanggal yang sama.`;
+                    if (confirm(msg)) {
                       onDeleteSK(item.id);
                     }
                   }}
                   className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
-                  title="Hapus"
+                  title={isSlotEmpty(item) ? "Hapus Permanen" : "Kosongkan SK"}
                 >
                   <Trash2 className="w-3.5 h-3.5" />
                 </button>
@@ -443,9 +462,15 @@ export const SKKegiatanView: React.FC<SKKegiatanViewProps> = ({
                       </div>
                     </td>
                     <td className="py-1.5 px-2.5 text-slate-700 max-w-sm">
-                      <span className="truncate block" title={item.uraian}>
-                        {item.uraian}
-                      </span>
+                      {isSlotEmpty(item) ? (
+                        <span className="inline-flex items-center gap-1 italic text-amber-800 bg-amber-50 px-1.5 py-0.5 rounded text-[11px] border border-amber-200 font-medium">
+                          Nomor Kosong (Tersedia)
+                        </span>
+                      ) : (
+                        <span className="truncate block" title={item.uraian}>
+                          {item.uraian}
+                        </span>
+                      )}
                     </td>
                     <td className="py-1.5 px-2.5">
                       <span className="inline-block px-1.5 py-0.5 rounded text-[10px] font-medium bg-amber-50 text-amber-800 border border-amber-200">
@@ -453,7 +478,7 @@ export const SKKegiatanView: React.FC<SKKegiatanViewProps> = ({
                       </span>
                     </td>
                     <td className="py-1.5 px-2.5 text-center">
-                      {item.wordUrl ? (
+                      {!isSlotEmpty(item) && item.wordUrl ? (
                         <a
                           href={isValidHttpUrl(item.wordUrl) ? item.wordUrl : undefined}
                           target="_blank"
@@ -469,7 +494,7 @@ export const SKKegiatanView: React.FC<SKKegiatanViewProps> = ({
                       )}
                     </td>
                     <td className="py-1.5 px-2.5 text-center">
-                      {item.pdfUrl ? (
+                      {!isSlotEmpty(item) && item.pdfUrl ? (
                         <a
                           href={isValidHttpUrl(item.pdfUrl) ? item.pdfUrl : undefined}
                           target="_blank"
@@ -489,20 +514,28 @@ export const SKKegiatanView: React.FC<SKKegiatanViewProps> = ({
                         <button
                           type="button"
                           onClick={() => handleOpenEdit(item)}
-                          className="text-slate-400 hover:text-slate-700 p-1 rounded hover:bg-slate-100 transition-colors"
-                          title="Edit"
+                          className={`p-1 rounded transition-colors ${
+                            isSlotEmpty(item)
+                              ? 'text-amber-700 hover:text-amber-800 bg-amber-50 hover:bg-amber-100 border border-amber-200'
+                              : 'text-slate-400 hover:text-slate-700 hover:bg-slate-100'
+                          }`}
+                          title={isSlotEmpty(item) ? "Gunakan Nomor Ini" : "Edit"}
                         >
                           <Pencil className="w-3.5 h-3.5" />
                         </button>
                         <button
                           type="button"
                           onClick={() => {
-                            if (confirm(`Yakin ingin menghapus SK ${item.nomorSK}?`)) {
+                            const empty = isSlotEmpty(item);
+                            const msg = empty
+                              ? `Hapus permanen nomor ${item.nomorSK}?`
+                              : `Kosongkan SK ${item.nomorSK}?\nNomor ini tetap tersimpan dan otomatis diberikan jika ada pengajuan di tanggal yang sama.`;
+                            if (confirm(msg)) {
                               onDeleteSK(item.id);
                             }
                           }}
                           className="text-slate-400 hover:text-rose-600 p-1 rounded hover:bg-rose-50 transition-colors"
-                          title="Hapus"
+                          title={isSlotEmpty(item) ? "Hapus Permanen" : "Kosongkan SK"}
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>

@@ -20,6 +20,7 @@ export interface SuratUmum {
   perihal: string;
   ringkasan?: string;
   fileUrl?: string;
+  isKosong?: boolean;
   createdAt?: string;
 }
 
@@ -38,6 +39,7 @@ export interface SuratTugas {
   dasarPenugasan?: string;
   bebanAnggaran?: string;
   status?: 'Aktif' | 'Selesai' | 'Draf';
+  isKosong?: boolean;
   createdAt?: string;
 }
 
@@ -51,6 +53,7 @@ export interface SKKegiatan {
   pdfUrl?: string;
   wordUrl?: string;
   petugasHonor?: string;
+  isKosong?: boolean;
   createdAt?: string;
 }
 
@@ -65,6 +68,7 @@ export interface BAST {
   pihakKedua: string;
   nilaiTransaksi?: number;
   keterangan?: string;
+  isKosong?: boolean;
   createdAt?: string;
 }
 
@@ -79,6 +83,7 @@ export interface FormPermintaan {
   pemohon?: string;
   estimasiBiaya?: number;
   status?: 'Diajukan' | 'Disetujui' | 'Diproses' | 'Selesai';
+  isKosong?: boolean;
   createdAt?: string;
 }
 
@@ -92,6 +97,7 @@ export interface SuratPPK {
   nomorSurat: string;
   perihal: string;
   kategoriPPK?: 'SPMK' | 'HPS' | 'RAB' | 'Kontrak' | 'Undangan' | 'Lainnya';
+  isKosong?: boolean;
   createdAt?: string;
 }
 

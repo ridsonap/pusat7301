@@ -150,6 +150,16 @@ export const extractYearFromItem = (item: {
   return new Date().getFullYear();
 };
 
+export const isSlotEmpty = (item: {
+  perihal?: string;
+  uraian?: string;
+  isKosong?: boolean;
+}): boolean => {
+  if (item.isKosong === true) return true;
+  const p = (item.perihal || item.uraian || '').trim();
+  return p === '' || p === '-' || p === '(Dibatalkan)' || p === '(Kosong)';
+};
+
 export const computeNextNomorUrut = (
   items: Array<{
     nomorUrut: number | string;
@@ -158,6 +168,9 @@ export const computeNextNomorUrut = (
     nomorForm?: string;
     nomorSK?: string;
     nomorBAST?: string;
+    perihal?: string;
+    uraian?: string;
+    isKosong?: boolean;
   }>,
   targetDateOrYear?: string | number
 ): number | string => {
@@ -182,6 +195,26 @@ export const computeNextNomorUrut = (
     return 1;
   }
 
+  // 1. CEK APAKAH TERDAPAT SLOT KOSONG PADA TANGGAL TERSEBUT
+  // "jika ada surat dihapus, maka no surat tetap tapi isian tidak ada. jika ada yang mengajukan tanggal tersebut maka akan diberi no itu"
+  if (targetDate) {
+    const emptySlotsOnDate = yearItems.filter((item) => {
+      if (!isSlotEmpty(item)) return false;
+      const d = parseTanggalToInputFormat(item.tanggal);
+      return d === targetDate;
+    });
+
+    if (emptySlotsOnDate.length > 0) {
+      emptySlotsOnDate.sort((a, b) => {
+        const pa = parseNomorUrutParts(a.nomorUrut);
+        const pb = parseNomorUrutParts(b.nomorUrut);
+        if (pa.base !== pb.base) return pa.base - pb.base;
+        return pa.sub - pb.sub;
+      });
+      return emptySlotsOnDate[0].nomorUrut;
+    }
+  }
+
   const maxBase = yearItems.reduce((max, item) => {
     const { base } = parseNomorUrutParts(item.nomorUrut);
     return Math.max(max, base);
@@ -192,19 +225,20 @@ export const computeNextNomorUrut = (
     return maxBase + 1;
   }
 
-  // Ambil hanya item-item yang memiliki tanggal valid
-  const datedItems = yearItems.filter((item) => {
+  // Ambil hanya item-item aktif (bukan slot kosong) yang memiliki tanggal valid
+  const activeDatedItems = yearItems.filter((item) => {
     if (!item.tanggal || typeof item.tanggal !== 'string' || !item.tanggal.trim()) return false;
+    if (isSlotEmpty(item)) return false;
     const d = parseTanggalToInputFormat(item.tanggal);
     return Boolean(d && d.length === 10);
   });
 
-  if (datedItems.length === 0) {
+  if (activeDatedItems.length === 0) {
     return maxBase + 1;
   }
 
-  // Cek apakah terdapat surat yang terbit SETELAH targetDate
-  const futureItems = datedItems.filter((item) => {
+  // Cek apakah terdapat surat aktif yang terbit SETELAH targetDate
+  const futureItems = activeDatedItems.filter((item) => {
     const d = parseTanggalToInputFormat(item.tanggal);
     return d > targetDate!;
   });
@@ -216,14 +250,14 @@ export const computeNextNomorUrut = (
 
   // targetDate adalah tanggal lampau (terdapat surat di tanggal sesudahnya).
   // Sistem otomatis menyisipkan nomor (misal 201.1, 201.2 atau 257.2)
-  const priorItems = datedItems.filter((item) => {
+  const priorItems = activeDatedItems.filter((item) => {
     const d = parseTanggalToInputFormat(item.tanggal);
     return d <= targetDate!;
   });
 
   // Jika targetDate lebih lampau dari surat terawal di tahun ini
   if (priorItems.length === 0) {
-    const minBase = datedItems.reduce((min, item) => {
+    const minBase = activeDatedItems.reduce((min, item) => {
       const { base } = parseNomorUrutParts(item.nomorUrut);
       return Math.min(min, base || min);
     }, 1);

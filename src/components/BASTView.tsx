@@ -27,7 +27,8 @@ import {
   computeNextNomorUrut, 
   getSortedKlasifikasiList, 
   parseTanggalToInputFormat,
-  getTahunFromTanggal
+  getTahunFromTanggal,
+  isSlotEmpty
 } from '../utils/formatters';
 import { exportTableToCSV } from '../utils/storage';
 
@@ -334,49 +335,69 @@ export const BASTView: React.FC<BASTViewProps> = ({
                     <span className="text-[10px] text-slate-400 font-medium">• {item.tanggal}</span>
                   </div>
 
-                  <p className="text-xs text-slate-800 mt-0.5 line-clamp-2">
-                    {item.perihal}
-                  </p>
-
-                  <div className="flex items-center gap-1.5 mt-1.5 text-[10px] text-slate-500 flex-wrap">
-                    <span className="bg-slate-100 px-1.5 py-0.5 rounded text-slate-700">
-                      {item.pihakPertama} & {item.pihakKedua}
-                    </span>
-                    {item.kodeKlasifikasi && (
-                      <span className="bg-emerald-50 text-emerald-800 border border-emerald-200 px-1 py-0.5 rounded font-mono font-medium">
-                        {item.kodeKlasifikasi}
+                  {isSlotEmpty(item) ? (
+                    <p className="mt-1">
+                      <span className="italic text-amber-800 bg-amber-50 px-1.5 py-0.5 rounded text-[10px] border border-amber-200 inline-block font-medium">
+                        Nomor Kosong (Tersedia)
                       </span>
-                    )}
-                  </div>
+                    </p>
+                  ) : (
+                    <>
+                      <p className="text-xs text-slate-800 mt-0.5 line-clamp-2">
+                        {item.perihal}
+                      </p>
+
+                      <div className="flex items-center gap-1.5 mt-1.5 text-[10px] text-slate-500 flex-wrap">
+                        <span className="bg-slate-100 px-1.5 py-0.5 rounded text-slate-700">
+                          {item.pihakPertama} & {item.pihakKedua}
+                        </span>
+                        {item.kodeKlasifikasi && (
+                          <span className="bg-emerald-50 text-emerald-800 border border-emerald-200 px-1 py-0.5 rounded font-mono font-medium">
+                            {item.kodeKlasifikasi}
+                          </span>
+                        )}
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
 
               <div className="flex items-center gap-1 shrink-0 self-center">
-                <button
-                  type="button"
-                  onClick={() => setPrintingBast(item)}
-                  className="p-1.5 text-slate-400 hover:text-emerald-700 hover:bg-emerald-50 rounded-lg transition-colors"
-                  title="Cetak Format BAST"
-                >
-                  <Printer className="w-3.5 h-3.5" />
-                </button>
+                {!isSlotEmpty(item) && (
+                  <button
+                    type="button"
+                    onClick={() => setPrintingBast(item)}
+                    className="p-1.5 text-slate-400 hover:text-emerald-700 hover:bg-emerald-50 rounded-lg transition-colors"
+                    title="Cetak Format BAST"
+                  >
+                    <Printer className="w-3.5 h-3.5" />
+                  </button>
+                )}
                 <button
                   type="button"
                   onClick={() => handleOpenEdit(item)}
-                  className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors"
-                  title="Edit"
+                  className={`p-1.5 rounded-lg transition-colors ${
+                    isSlotEmpty(item)
+                      ? 'text-amber-700 hover:text-amber-800 bg-amber-50 hover:bg-amber-100 border border-amber-200'
+                      : 'text-slate-400 hover:text-slate-700 hover:bg-slate-100'
+                  }`}
+                  title={isSlotEmpty(item) ? "Gunakan Nomor Ini" : "Edit BAST"}
                 >
                   <Pencil className="w-3.5 h-3.5" />
                 </button>
                 <button
                   type="button"
                   onClick={() => {
-                    if (confirm(`Hapus BAST nomor ${item.nomorBAST}?`)) {
+                    const empty = isSlotEmpty(item);
+                    const msg = empty
+                      ? `Hapus permanen nomor ${item.nomorBAST}?`
+                      : `Kosongkan BAST ${item.nomorBAST}?\nNomor ini tetap tersimpan dan otomatis diberikan jika ada pengajuan di tanggal yang sama.`;
+                    if (confirm(msg)) {
                       onDeleteBAST(item.id);
                     }
                   }}
                   className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
-                  title="Hapus"
+                  title={isSlotEmpty(item) ? "Hapus Permanen" : "Kosongkan BAST"}
                 >
                   <Trash2 className="w-3.5 h-3.5" />
                 </button>
@@ -435,43 +456,59 @@ export const BASTView: React.FC<BASTViewProps> = ({
                       </div>
                     </td>
                     <td className="py-1.5 px-2.5 text-slate-700 max-w-sm">
-                      <span className="truncate block" title={item.perihal}>
-                        {item.perihal}
-                      </span>
+                      {isSlotEmpty(item) ? (
+                        <span className="inline-flex items-center gap-1 italic text-amber-800 bg-amber-50 px-1.5 py-0.5 rounded text-[11px] border border-amber-200 font-medium">
+                          Nomor Kosong (Tersedia)
+                        </span>
+                      ) : (
+                        <span className="truncate block" title={item.perihal}>
+                          {item.perihal}
+                        </span>
+                      )}
                     </td>
                     <td className="py-1.5 px-2.5 text-slate-600 text-xs truncate max-w-[140px]" title={item.pihakPertama}>
-                      {item.pihakPertama}
+                      {isSlotEmpty(item) ? '-' : (item.pihakPertama || '-')}
                     </td>
                     <td className="py-1.5 px-2.5 text-slate-600 text-xs truncate max-w-[140px]" title={item.pihakKedua}>
-                      {item.pihakKedua}
+                      {isSlotEmpty(item) ? '-' : (item.pihakKedua || '-')}
                     </td>
                     <td className="py-1.5 px-2.5 text-center">
                       <div className="flex items-center justify-center gap-1">
                         <button
                           type="button"
                           onClick={() => handleOpenEdit(item)}
-                          className="text-slate-400 hover:text-slate-700 p-1 rounded hover:bg-slate-100 transition-colors"
-                          title="Edit BAST"
+                          className={`p-1 rounded transition-colors ${
+                            isSlotEmpty(item)
+                              ? 'text-amber-700 hover:text-amber-800 bg-amber-50 hover:bg-amber-100 border border-amber-200'
+                              : 'text-slate-400 hover:text-slate-700 hover:bg-slate-100'
+                          }`}
+                          title={isSlotEmpty(item) ? "Gunakan Nomor Ini" : "Edit BAST"}
                         >
                           <Pencil className="w-3.5 h-3.5" />
                         </button>
-                        <button
-                          type="button"
-                          onClick={() => setPrintingBast(item)}
-                          className="text-slate-400 hover:text-emerald-700 p-1 rounded hover:bg-emerald-50 transition-colors"
-                          title="Pratinjau / Cetak BAST"
-                        >
-                          <Printer className="w-3.5 h-3.5" />
-                        </button>
+                        {!isSlotEmpty(item) && (
+                          <button
+                            type="button"
+                            onClick={() => setPrintingBast(item)}
+                            className="text-slate-400 hover:text-emerald-700 p-1 rounded hover:bg-emerald-50 transition-colors"
+                            title="Pratinjau / Cetak BAST"
+                          >
+                            <Printer className="w-3.5 h-3.5" />
+                          </button>
+                        )}
                         <button
                           type="button"
                           onClick={() => {
-                            if (confirm(`Hapus BAST nomor ${item.nomorBAST}?`)) {
+                            const empty = isSlotEmpty(item);
+                            const msg = empty
+                              ? `Hapus permanen nomor ${item.nomorBAST}?`
+                              : `Kosongkan BAST ${item.nomorBAST}?\nNomor ini tetap tersimpan dan otomatis diberikan jika ada pengajuan di tanggal yang sama.`;
+                            if (confirm(msg)) {
                               onDeleteBAST(item.id);
                             }
                           }}
                           className="text-slate-400 hover:text-rose-600 p-1 rounded hover:bg-rose-50 transition-colors"
-                          title="Hapus"
+                          title={isSlotEmpty(item) ? "Hapus Permanen" : "Kosongkan BAST"}
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>

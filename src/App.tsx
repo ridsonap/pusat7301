@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { ActiveTab, SuratUmum, SuratTugas, SKKegiatan, BAST, FormPermintaan, SuratPPK, SKPItem, Pegawai } from './types';
 import { loadAllState, saveStoredData, resetAllData, STORAGE_KEYS } from './utils/storage';
+import { isSlotEmpty } from './utils/formatters';
 import type { GasModuleData } from './utils/gasSync';
 import {
   DbStatus,
@@ -90,107 +91,117 @@ export const App: React.FC = () => {
     pegawai: state.pegawai.length,
   };
 
-  // Handlers for Surat Umum
-  const handleAddSuratUmum = (newSurat: SuratUmum) => {
-    setState(prev => ({
-      ...prev,
-      suratUmum: [newSurat, ...prev.suratUmum]
-    }));
-    saveRecordRemote('suratUmum', newSurat, false);
+  // Helper: Tambah naskah baru atau pakai ulang slot nomor kosong yang ada
+  const makeAdd = <T extends { id: string; nomorUrut: number | string; isKosong?: boolean }>(
+    key: 'suratUmum' | 'suratTugas' | 'skKegiatan' | 'bast' | 'formPermintaan' | 'suratPPK'
+  ) => (newItem: T) => {
+    setState(prev => {
+      const list = prev[key] as unknown as T[];
+      const emptyIdx = list.findIndex(
+        item => (item.isKosong || isSlotEmpty(item as any)) && String(item.nomorUrut).trim() === String(newItem.nomorUrut).trim()
+      );
+      if (emptyIdx !== -1) {
+        const slot = list[emptyIdx];
+        const merged = { ...newItem, id: slot.id, isKosong: false };
+        saveRecordRemote(key, merged, true);
+        return {
+          ...prev,
+          [key]: list.map((item, idx) => idx === emptyIdx ? merged : item)
+        };
+      }
+      saveRecordRemote(key, newItem, false);
+      return {
+        ...prev,
+        [key]: [newItem, ...list]
+      };
+    });
   };
 
-  const handleDeleteSuratUmum = (id: string) => {
-    setState(prev => ({
-      ...prev,
-      suratUmum: prev.suratUmum.filter(s => s.id !== id)
-    }));
-    deleteRecordRemote('suratUmum', id);
+  // Helper: Hapus surat -> kosongkan isian (nomor tetap ada), jika sudah kosong -> hapus permanen
+  const makeDelete = <T extends { id: string; isKosong?: boolean }>(
+    key: 'suratUmum' | 'suratTugas' | 'skKegiatan' | 'bast' | 'formPermintaan' | 'suratPPK',
+    emptyFields: (item: T) => T
+  ) => (id: string) => {
+    setState(prev => {
+      const list = prev[key] as unknown as T[];
+      const target = list.find(item => item.id === id);
+      if (!target) return prev;
+      if (target.isKosong || isSlotEmpty(target as any)) {
+        deleteRecordRemote(key, id);
+        return {
+          ...prev,
+          [key]: list.filter(item => item.id !== id)
+        };
+      }
+      const emptied = emptyFields(target);
+      saveRecordRemote(key, emptied, true);
+      return {
+        ...prev,
+        [key]: list.map(item => item.id === id ? emptied : item)
+      };
+    });
   };
 
-  // Handlers for Surat Tugas
-  const handleAddSuratTugas = (newSurat: SuratTugas) => {
-    setState(prev => ({
-      ...prev,
-      suratTugas: [newSurat, ...prev.suratTugas]
-    }));
-    saveRecordRemote('suratTugas', newSurat, false);
-  };
+  const handleAddSuratUmum = makeAdd<SuratUmum>('suratUmum');
+  const handleDeleteSuratUmum = makeDelete<SuratUmum>('suratUmum', (s) => ({
+    ...s,
+    perihal: '',
+    tujuan: '',
+    ringkasan: '',
+    fileUrl: undefined,
+    isKosong: true,
+  }));
 
-  const handleDeleteSuratTugas = (id: string) => {
-    setState(prev => ({
-      ...prev,
-      suratTugas: prev.suratTugas.filter(s => s.id !== id)
-    }));
-    deleteRecordRemote('suratTugas', id);
-  };
+  const handleAddSuratTugas = makeAdd<SuratTugas>('suratTugas');
+  const handleDeleteSuratTugas = makeDelete<SuratTugas>('suratTugas', (s) => ({
+    ...s,
+    perihal: '',
+    petugas: '',
+    petugasIds: [],
+    tujuanTugas: '',
+    dasarPenugasan: '',
+    bebanAnggaran: '',
+    isKosong: true,
+  }));
 
-  // Handlers for SK Kegiatan
-  const handleAddSK = (newSK: SKKegiatan) => {
-    setState(prev => ({
-      ...prev,
-      skKegiatan: [newSK, ...prev.skKegiatan]
-    }));
-    saveRecordRemote('skKegiatan', newSK, false);
-  };
+  const handleAddSK = makeAdd<SKKegiatan>('skKegiatan');
+  const handleDeleteSK = makeDelete<SKKegiatan>('skKegiatan', (s) => ({
+    ...s,
+    uraian: '',
+    wordUrl: '',
+    pdfUrl: '',
+    petugasHonor: '',
+    isKosong: true,
+  }));
 
-  const handleDeleteSK = (id: string) => {
-    setState(prev => ({
-      ...prev,
-      skKegiatan: prev.skKegiatan.filter(s => s.id !== id)
-    }));
-    deleteRecordRemote('skKegiatan', id);
-  };
+  const handleAddBAST = makeAdd<BAST>('bast');
+  const handleDeleteBAST = makeDelete<BAST>('bast', (s) => ({
+    ...s,
+    perihal: '',
+    pihakPertama: '',
+    pihakKedua: '',
+    nilaiTransaksi: 0,
+    keterangan: '',
+    isKosong: true,
+  }));
 
-  // Handlers for BAST
-  const handleAddBAST = (newBAST: BAST) => {
-    setState(prev => ({
-      ...prev,
-      bast: [newBAST, ...prev.bast]
-    }));
-    saveRecordRemote('bast', newBAST, false);
-  };
+  const handleAddForm = makeAdd<FormPermintaan>('formPermintaan');
+  const handleDeleteForm = makeDelete<FormPermintaan>('formPermintaan', (s) => ({
+    ...s,
+    perihal: '',
+    keterangan: '',
+    pemohon: '',
+    estimasiBiaya: 0,
+    isKosong: true,
+  }));
 
-  const handleDeleteBAST = (id: string) => {
-    setState(prev => ({
-      ...prev,
-      bast: prev.bast.filter(s => s.id !== id)
-    }));
-    deleteRecordRemote('bast', id);
-  };
-
-  // Handlers for Form Permintaan
-  const handleAddForm = (newForm: FormPermintaan) => {
-    setState(prev => ({
-      ...prev,
-      formPermintaan: [newForm, ...prev.formPermintaan]
-    }));
-    saveRecordRemote('formPermintaan', newForm, false);
-  };
-
-  const handleDeleteForm = (id: string) => {
-    setState(prev => ({
-      ...prev,
-      formPermintaan: prev.formPermintaan.filter(s => s.id !== id)
-    }));
-    deleteRecordRemote('formPermintaan', id);
-  };
-
-  // Handlers for Surat PPK
-  const handleAddPPK = (newPPK: SuratPPK) => {
-    setState(prev => ({
-      ...prev,
-      suratPPK: [newPPK, ...prev.suratPPK]
-    }));
-    saveRecordRemote('suratPPK', newPPK, false);
-  };
-
-  const handleDeletePPK = (id: string) => {
-    setState(prev => ({
-      ...prev,
-      suratPPK: prev.suratPPK.filter(s => s.id !== id)
-    }));
-    deleteRecordRemote('suratPPK', id);
-  };
+  const handleAddPPK = makeAdd<SuratPPK>('suratPPK');
+  const handleDeletePPK = makeDelete<SuratPPK>('suratPPK', (s) => ({
+    ...s,
+    perihal: '',
+    tujuan: '',
+    isKosong: true,
+  }));
 
   // Handlers for Pegawai
   const handleAddPegawai = (newPegawai: Pegawai) => {
@@ -247,11 +258,12 @@ export const App: React.FC = () => {
     }));
   };
 
-  // Update handlers (edit tanpa hapus+buat ulang)
-  const makeUpdate = <T extends { id: string }>(key: 'suratUmum' | 'suratTugas' | 'skKegiatan' | 'bast' | 'formPermintaan' | 'suratPPK') =>
+  // Update handlers (edit tanpa hapus+buat ulang, tandai tidak kosong)
+  const makeUpdate = <T extends { id: string; isKosong?: boolean }>(key: 'suratUmum' | 'suratTugas' | 'skKegiatan' | 'bast' | 'formPermintaan' | 'suratPPK') =>
     (updated: T) => {
-      setState(prev => ({ ...prev, [key]: (prev[key] as unknown as T[]).map(i => i.id === updated.id ? updated : i) }));
-      saveRecordRemote(key, updated, true);
+      const activeItem = { ...updated, isKosong: false };
+      setState(prev => ({ ...prev, [key]: (prev[key] as unknown as T[]).map(i => i.id === updated.id ? activeItem : i) }));
+      saveRecordRemote(key, activeItem, true);
     };
 
   const handleUpdateSuratUmum = makeUpdate<SuratUmum>('suratUmum');

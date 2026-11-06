@@ -27,7 +27,8 @@ import {
   computeNextNomorUrut, 
   getSortedKlasifikasiList,
   parseTanggalToInputFormat,
-  getTahunFromTanggal
+  getTahunFromTanggal,
+  isSlotEmpty
 } from '../utils/formatters';
 import { exportTableToCSV } from '../utils/storage';
 import { OfficialPrintSuratTugas } from './OfficialPrintSuratTugas';
@@ -386,23 +387,35 @@ export const SuratTugasView: React.FC<SuratTugasViewProps> = ({
                     {item.kodeKlasifikasi}
                   </span>
                 </div>
-                <p className="text-xs text-slate-800 truncate mt-0.5" title={item.perihal}>
-                  {item.perihal}
-                </p>
-                <p className="text-[11px] text-slate-500 truncate">
-                  Petugas: {item.petugas}
-                </p>
+                {isSlotEmpty(item) ? (
+                  <p className="mt-1">
+                    <span className="italic text-amber-800 bg-amber-50 px-1.5 py-0.5 rounded text-[10px] border border-amber-200 inline-block font-medium">
+                      Nomor Kosong (Tersedia)
+                    </span>
+                  </p>
+                ) : (
+                  <>
+                    <p className="text-xs text-slate-800 truncate mt-0.5" title={item.perihal}>
+                      {item.perihal}
+                    </p>
+                    <p className="text-[11px] text-slate-500 truncate">
+                      Petugas: {item.petugas || '-'}
+                    </p>
+                  </>
+                )}
               </div>
 
               <div className="flex items-center gap-1 shrink-0">
-                <button
-                  type="button"
-                  onClick={() => setPrintingSurat(item)}
-                  className="p-1.5 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors"
-                  title="Cetak Naskah Resmi"
-                >
-                  <Printer className="w-3.5 h-3.5" />
-                </button>
+                {!isSlotEmpty(item) && (
+                  <button
+                    type="button"
+                    onClick={() => setPrintingSurat(item)}
+                    className="p-1.5 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors"
+                    title="Cetak Naskah Resmi"
+                  >
+                    <Printer className="w-3.5 h-3.5" />
+                  </button>
+                )}
                 <button
                   type="button"
                   onClick={() => copyToClipboard(item.nomorSurat, item.id)}
@@ -414,18 +427,26 @@ export const SuratTugasView: React.FC<SuratTugasViewProps> = ({
                 <button
                   type="button"
                   onClick={() => handleOpenEdit(item)}
-                  className="p-1.5 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors"
-                  title="Edit"
+                  className={`p-1.5 rounded-lg transition-colors ${
+                    isSlotEmpty(item)
+                      ? 'text-amber-700 hover:text-amber-800 bg-amber-50 hover:bg-amber-100 border border-amber-200'
+                      : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100'
+                  }`}
+                  title={isSlotEmpty(item) ? "Gunakan Nomor Ini" : "Edit"}
                 >
                   <Pencil className="w-3.5 h-3.5" />
                 </button>
                 <button
                   type="button"
                   onClick={() => {
-                    if (confirm(`Hapus surat tugas ${item.nomorSurat}?`)) onDeleteSuratTugas(item.id);
+                    const empty = isSlotEmpty(item);
+                    const msg = empty
+                      ? `Hapus permanen nomor ${item.nomorSurat}?`
+                      : `Kosongkan surat tugas ${item.nomorSurat}?\nNomor ini tetap tersimpan dan otomatis diberikan jika ada pengajuan di tanggal yang sama.`;
+                    if (confirm(msg)) onDeleteSuratTugas(item.id);
                   }}
                   className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
-                  title="Hapus"
+                  title={isSlotEmpty(item) ? "Hapus Permanen" : "Kosongkan Surat"}
                 >
                   <Trash2 className="w-3.5 h-3.5" />
                 </button>
@@ -489,42 +510,58 @@ export const SuratTugasView: React.FC<SuratTugasViewProps> = ({
                       </span>
                     </td>
                     <td className="py-1.5 px-2.5 text-slate-700 max-w-sm">
-                      <span className="truncate block" title={item.perihal}>
-                        {item.perihal}
-                      </span>
+                      {isSlotEmpty(item) ? (
+                        <span className="inline-flex items-center gap-1 italic text-amber-800 bg-amber-50 px-1.5 py-0.5 rounded text-[11px] border border-amber-200 font-medium">
+                          Nomor Kosong (Tersedia)
+                        </span>
+                      ) : (
+                        <span className="truncate block" title={item.perihal}>
+                          {item.perihal}
+                        </span>
+                      )}
                     </td>
                     <td className="py-1.5 px-2.5 text-slate-600 max-w-44">
                       <span className="truncate block" title={item.petugas}>
-                        {item.petugas}
+                        {isSlotEmpty(item) ? '-' : (item.petugas || '-')}
                       </span>
                     </td>
                     <td className="py-1.5 px-2.5 text-center">
                       <div className="flex items-center justify-center gap-1">
-                        <button
-                          type="button"
-                          onClick={() => setPrintingSurat(item)}
-                          className="text-slate-400 hover:text-slate-700 p-1 rounded hover:bg-slate-100 transition-colors"
-                          title="Cetak Naskah Resmi"
-                        >
-                          <Printer className="w-3.5 h-3.5" />
-                        </button>
+                        {!isSlotEmpty(item) && (
+                          <button
+                            type="button"
+                            onClick={() => setPrintingSurat(item)}
+                            className="text-slate-400 hover:text-slate-700 p-1 rounded hover:bg-slate-100 transition-colors"
+                            title="Cetak Naskah Resmi"
+                          >
+                            <Printer className="w-3.5 h-3.5" />
+                          </button>
+                        )}
                         <button
                           type="button"
                           onClick={() => handleOpenEdit(item)}
-                          className="text-slate-400 hover:text-slate-700 p-1 rounded hover:bg-slate-100 transition-colors"
-                          title="Edit"
+                          className={`p-1 rounded transition-colors ${
+                            isSlotEmpty(item)
+                              ? 'text-amber-700 hover:text-amber-800 bg-amber-50 hover:bg-amber-100 border border-amber-200'
+                              : 'text-slate-400 hover:text-slate-700 hover:bg-slate-100'
+                          }`}
+                          title={isSlotEmpty(item) ? "Gunakan Nomor Ini" : "Edit"}
                         >
                           <Pencil className="w-3.5 h-3.5" />
                         </button>
                         <button
                           type="button"
                           onClick={() => {
-                            if (confirm(`Yakin ingin menghapus surat tugas ${item.nomorSurat}?`)) {
+                            const empty = isSlotEmpty(item);
+                            const msg = empty
+                              ? `Hapus permanen nomor ${item.nomorSurat}?`
+                              : `Kosongkan surat tugas ${item.nomorSurat}?\nNomor ini tetap tersimpan dan otomatis diberikan jika ada pengajuan di tanggal yang sama.`;
+                            if (confirm(msg)) {
                               onDeleteSuratTugas(item.id);
                             }
                           }}
                           className="text-slate-400 hover:text-rose-600 p-1 rounded hover:bg-rose-50 transition-colors"
-                          title="Hapus"
+                          title={isSlotEmpty(item) ? "Hapus Permanen" : "Kosongkan Surat Tugas"}
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
