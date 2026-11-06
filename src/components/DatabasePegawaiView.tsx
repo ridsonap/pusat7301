@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { newId } from '../utils/ids';
 import { 
   Users, 
   Plus, 
@@ -67,6 +68,18 @@ export const DatabasePegawaiView: React.FC<DatabasePegawaiViewProps> = ({
       alert('Nama pegawai wajib diisi.');
       return;
     }
+    const nipBaru = formData.nipBaru?.trim() || '';
+    if (nipBaru && !/^\d{18}$/.test(nipBaru)) {
+      alert('NIP Baru harus 18 digit angka (atau dikosongkan).');
+      return;
+    }
+    const duplikat = pegawaiList.some(p =>
+      p.nipBaru && nipBaru && p.nipBaru === nipBaru && (!editingPegawai || p.id !== editingPegawai.id)
+    );
+    if (duplikat) {
+      alert('NIP Baru sudah terdaftar untuk pegawai lain.');
+      return;
+    }
 
     if (editingPegawai) {
       onUpdatePegawai({
@@ -81,7 +94,7 @@ export const DatabasePegawaiView: React.FC<DatabasePegawaiViewProps> = ({
     } else {
       const maxNo = pegawaiList.reduce((max, item) => (item.no > max ? item.no : max), 0);
       const newPegawai: Pegawai = {
-        id: `peg-${Date.now()}`,
+        id: newId('peg'),
         no: maxNo + 1,
         nama: formData.nama.trim(),
         nipLama: formData.nipLama?.trim() || '',
@@ -156,7 +169,7 @@ export const DatabasePegawaiView: React.FC<DatabasePegawaiViewProps> = ({
             <span>Sheet</span>
           </a>
 
-          <button
+          <button type="button"
             onClick={handleExportCSV}
             className="px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs sm:text-sm font-semibold flex items-center gap-1.5 sm:gap-2 transition-colors"
           >
@@ -164,7 +177,7 @@ export const DatabasePegawaiView: React.FC<DatabasePegawaiViewProps> = ({
             <span>CSV</span>
           </button>
 
-          <button
+          <button type="button"
             onClick={handleOpenAdd}
             className="flex-1 sm:flex-none justify-center px-4 py-2 sm:py-2.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-xs sm:text-sm font-bold flex items-center gap-2 shadow-xs hover:shadow-md transition-all active:scale-95"
           >
@@ -249,14 +262,14 @@ export const DatabasePegawaiView: React.FC<DatabasePegawaiViewProps> = ({
 
               {/* Card Actions */}
               <div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-2">
-                <button
+                <button type="button"
                   onClick={() => handleOpenEdit(p)}
                   className="flex-1 py-1.5 bg-sky-50 hover:bg-sky-100 text-sky-800 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-colors border border-sky-200"
                 >
                   <Edit className="w-3.5 h-3.5" />
                   <span>Edit Data</span>
                 </button>
-                <button
+                <button type="button"
                   onClick={() => {
                     if (confirm(`Yakin ingin menghapus ${p.nama} dari database?`)) {
                       onDeletePegawai(p.id);
@@ -279,14 +292,14 @@ export const DatabasePegawaiView: React.FC<DatabasePegawaiViewProps> = ({
           <table className="w-full text-left text-xs sm:text-sm">
             <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 font-bold uppercase tracking-wider text-[11px]">
               <tr>
-                <th className="py-3.5 px-4 w-12 text-center">No</th>
-                <th className="py-3.5 px-4">Nama Lengkap & Gelar</th>
-                <th className="py-3.5 px-4 w-52">NIP Baru (18 Digit)</th>
-                <th className="py-3.5 px-4 w-28">NIP Lama</th>
-                <th className="py-3.5 px-4 w-24 text-center">Golongan</th>
-                <th className="py-3.5 px-4 w-40">Pangkat</th>
-                <th className="py-3.5 px-4">Jabatan Kedinasan</th>
-                <th className="py-3.5 px-4 w-24 text-center">Aksi</th>
+                <th scope="col" className="py-3.5 px-4 w-12 text-center">No</th>
+                <th scope="col" className="py-3.5 px-4">Nama Lengkap & Gelar</th>
+                <th scope="col" className="py-3.5 px-4 w-52">NIP Baru (18 Digit)</th>
+                <th scope="col" className="py-3.5 px-4 w-28">NIP Lama</th>
+                <th scope="col" className="py-3.5 px-4 w-24 text-center">Golongan</th>
+                <th scope="col" className="py-3.5 px-4 w-40">Pangkat</th>
+                <th scope="col" className="py-3.5 px-4">Jabatan Kedinasan</th>
+                <th scope="col" className="py-3.5 px-4 w-24 text-center">Aksi</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -328,14 +341,14 @@ export const DatabasePegawaiView: React.FC<DatabasePegawaiViewProps> = ({
                     </td>
                     <td className="py-3 px-4 text-center">
                       <div className="flex items-center justify-center gap-1">
-                        <button
+                        <button type="button"
                           onClick={() => handleOpenEdit(p)}
                           className="text-slate-400 hover:text-sky-600 p-1.5 rounded-lg hover:bg-sky-50 transition-colors"
                           title="Edit Pegawai"
                         >
                           <Edit className="w-4 h-4" />
                         </button>
-                        <button
+                        <button type="button"
                           onClick={() => {
                             if (confirm(`Yakin ingin menghapus ${p.nama} dari database?`)) {
                               onDeletePegawai(p.id);
@@ -377,7 +390,7 @@ export const DatabasePegawaiView: React.FC<DatabasePegawaiViewProps> = ({
                   <p className="text-xs text-slate-500">Database Pegawai BPS Kab. Kepulauan Selayar</p>
                 </div>
               </div>
-              <button
+              <button type="button"
                 onClick={() => setIsModalOpen(false)}
                 className="text-slate-400 hover:text-slate-600 p-2 rounded-xl hover:bg-slate-100"
               >

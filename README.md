@@ -77,7 +77,7 @@ Aplikasi Web Resmi Tata Naskah Dinas & Administrasi Perkantoran Terpadu untuk **
   * NIP Baru (18 Digit) & NIP Lama (9 Digit).
   * Pangkat & Golongan Ruang (III/d, III/b, III/a, II/d, II/c, dll.).
   * Jabatan Kedinasan.
-* **Fitur CRUD**: Tambah pegawai baru, edit kenaikan pangkat/jabatan, pencarian instan, dan ekspor data ke Excel/CSV.
+* **Fitur CRUD**: Tambah pegawai baru, edit kenaikan pangkat/jabatan, pencarian instan, dan ekspor data ke CSV.
 
 ---
 
@@ -116,3 +116,8 @@ npm run build
 * **Provinsi**: Sulawesi Selatan
 * **Alamat**: Jl. WR. Supratman No. 20, Benteng, Kabupaten Kepulauan Selayar 92812
 * **Website Resmi**: [https://selayarkab.bps.go.id](https://selayarkab.bps.go.id)
+
+## Deploy
+
+Target deploy dikunci ke **Vercel** (SPA rewrite via `vercel.json`, `base: '/'`).
+Data tersimpan di `localStorage` versi `pusat7301_v4_*` (migrasi otomatis dari `v3`). Sinkronisasi Google Sheets via GAS bersifat opsional.

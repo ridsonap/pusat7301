@@ -32,6 +32,9 @@
 }
 
 /* Print Styles for Official BPS Letters */
+.print-only {
+  display: none !important;
+}
 @media print {
   @page {
     size: A4 portrait;
@@ -43,8 +46,11 @@
     color: black !important;
   }
 
-  /* Hide UI elements during print */
-  .no-print, header, nav, aside, button, .sidebar, .action-buttons {
+  /* Hide UI elements during print (jangan sembunyikan tombol di dalam dokumen cetak) */
+  .no-print, header, nav, aside, .sidebar, .action-buttons {
+    display: none !important;
+  }
+  button.no-print {
     display: none !important;
   }
 
@@ -61,13 +67,13 @@
     border: none !important;
   }
 
-  /* Preserve table formatting and borders */
-  table {
+  /* Preserve table formatting hanya di dalam dokumen cetak */
+  .print-container table {
     border-collapse: collapse !important;
     width: 100% !important;
   }
 
-  th, td {
+  .print-container th, .print-container td {
     border: 1px solid #1e293b !important;
   }
 }

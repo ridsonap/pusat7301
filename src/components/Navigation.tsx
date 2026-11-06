@@ -48,30 +48,31 @@ export const Navigation: React.FC<NavigationProps> = ({
   ];
 
   return (
-    <nav className="bg-white border-b border-slate-200 sticky top-20 z-30 shadow-xs">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex space-x-1 overflow-x-auto py-2.5 no-scrollbar">
+    <nav className="bg-white border-b border-slate-200 sticky top-14 sm:top-16 z-30">
+      <div className="max-w-7xl mx-auto px-3.5 sm:px-6 lg:px-8">
+        <div className="flex space-x-1 overflow-x-auto py-2 no-scrollbar">
           {tabs.map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
             return (
               <button
+                type="button"
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap transition-all ${
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors ${
                   isActive
-                    ? 'bg-sky-600 text-white shadow-xs'
+                    ? 'bg-sky-600 text-white font-semibold shadow-2xs'
                     : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
                 }`}
               >
-                <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-slate-500'}`} />
+                <Icon className={`w-3.5 h-3.5 ${isActive ? 'text-white' : 'text-slate-500'}`} />
                 <span>{tab.label}</span>
                 {tab.badge !== undefined && (
                   <span
-                    className={`ml-1 px-1.5 py-0.5 text-[11px] rounded-full font-bold ${
+                    className={`ml-0.5 px-1.5 py-0.2 text-[10px] rounded font-mono tabular-nums ${
                       isActive
                         ? 'bg-white/20 text-white'
-                        : 'bg-slate-100 text-slate-600 group-hover:bg-slate-200'
+                        : 'bg-slate-100 text-slate-600'
                     }`}
                   >
                     {tab.badge}

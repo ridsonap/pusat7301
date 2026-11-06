@@ -12,11 +12,9 @@ import {
   Users, 
   ExternalLink, 
   Search, 
-  Sparkles,
   ArrowRight,
-  TrendingUp,
-  FileSpreadsheet,
-  CheckCircle2
+  CheckCircle2,
+  Building2
 } from 'lucide-react';
 import { ActiveTab } from '../types';
 import { PORTAL_LINKS } from '../data/seedData';
@@ -59,8 +57,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
       icon: FolderClosed,
       count: counts.skKegiatan,
       sheetUrl: PORTAL_LINKS.skKegiatan,
-      color: 'from-amber-500/10 to-orange-500/10 text-amber-700 border-amber-200',
-      badgeColor: 'bg-amber-100 text-amber-800'
+      iconColor: 'text-amber-700 bg-amber-50 border-amber-200',
+      badgeColor: 'bg-amber-50 text-amber-800 border-amber-200'
     },
     {
       id: 'bast' as ActiveTab,
@@ -69,8 +67,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
       icon: FileCheck2,
       count: counts.bast,
       sheetUrl: PORTAL_LINKS.bast,
-      color: 'from-emerald-500/10 to-teal-500/10 text-emerald-700 border-emerald-200',
-      badgeColor: 'bg-emerald-100 text-emerald-800'
+      iconColor: 'text-emerald-700 bg-emerald-50 border-emerald-200',
+      badgeColor: 'bg-emerald-50 text-emerald-800 border-emerald-200'
     },
     {
       id: 'form-permintaan' as ActiveTab,
@@ -79,8 +77,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
       icon: ClipboardList,
       count: counts.formPermintaan,
       sheetUrl: PORTAL_LINKS.formPermintaan,
-      color: 'from-indigo-500/10 to-violet-500/10 text-indigo-700 border-indigo-200',
-      badgeColor: 'bg-indigo-100 text-indigo-800'
+      iconColor: 'text-indigo-700 bg-indigo-50 border-indigo-200',
+      badgeColor: 'bg-indigo-50 text-indigo-800 border-indigo-200'
     },
     {
       id: 'surat-umum' as ActiveTab,
@@ -89,8 +87,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
       icon: Mail,
       count: counts.suratUmum,
       sheetUrl: PORTAL_LINKS.suratUmum,
-      color: 'from-sky-500/10 to-blue-500/10 text-sky-700 border-sky-200',
-      badgeColor: 'bg-sky-100 text-sky-800'
+      iconColor: 'text-sky-700 bg-sky-50 border-sky-200',
+      badgeColor: 'bg-sky-50 text-sky-800 border-sky-200'
     },
     {
       id: 'surat-tugas' as ActiveTab,
@@ -99,8 +97,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
       icon: Send,
       count: counts.suratTugas,
       sheetUrl: PORTAL_LINKS.suratTugas,
-      color: 'from-blue-500/10 to-cyan-500/10 text-blue-700 border-blue-200',
-      badgeColor: 'bg-blue-100 text-blue-800'
+      iconColor: 'text-blue-700 bg-blue-50 border-blue-200',
+      badgeColor: 'bg-blue-50 text-blue-800 border-blue-200'
     },
     {
       id: 'skp-bulanan' as ActiveTab,
@@ -109,8 +107,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
       icon: Target,
       count: counts.pegawai,
       sheetUrl: PORTAL_LINKS.skpDriveUploadSpreadsheet,
-      color: 'from-rose-500/10 to-pink-500/10 text-rose-700 border-rose-200',
-      badgeColor: 'bg-rose-100 text-rose-800'
+      iconColor: 'text-rose-700 bg-rose-50 border-rose-200',
+      badgeColor: 'bg-rose-50 text-rose-800 border-rose-200'
     },
     {
       id: 'dokumentasi' as ActiveTab,
@@ -119,8 +117,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
       icon: Camera,
       count: undefined,
       sheetUrl: PORTAL_LINKS.dokumentasiDrive,
-      color: 'from-purple-500/10 to-fuchsia-500/10 text-purple-700 border-purple-200',
-      badgeColor: 'bg-purple-100 text-purple-800'
+      iconColor: 'text-purple-700 bg-purple-50 border-purple-200',
+      badgeColor: 'bg-purple-50 text-purple-800 border-purple-200'
     },
     {
       id: 'surat-ppk' as ActiveTab,
@@ -129,8 +127,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
       icon: FileText,
       count: counts.suratPPK,
       sheetUrl: PORTAL_LINKS.suratPPK,
-      color: 'from-teal-500/10 to-emerald-500/10 text-teal-700 border-teal-200',
-      badgeColor: 'bg-teal-100 text-teal-800'
+      iconColor: 'text-teal-700 bg-teal-50 border-teal-200',
+      badgeColor: 'bg-teal-50 text-teal-800 border-teal-200'
     },
     {
       id: 'spm-digital' as ActiveTab,
@@ -139,163 +137,158 @@ export const Dashboard: React.FC<DashboardProps> = ({
       icon: Receipt,
       count: undefined,
       sheetUrl: PORTAL_LINKS.spmDigitalDrive,
-      color: 'from-cyan-500/10 to-sky-500/10 text-cyan-700 border-cyan-200',
-      badgeColor: 'bg-cyan-100 text-cyan-800'
+      iconColor: 'text-cyan-700 bg-cyan-50 border-cyan-200',
+      badgeColor: 'bg-cyan-50 text-cyan-800 border-cyan-200'
     },
   ];
 
   return (
-    <div className="space-y-6 sm:space-y-8 pb-12">
+    <div className="space-y-6 pb-12">
       
-      {/* Hero Banner with Modern Gradient & Office Vibe */}
-      <div className="relative rounded-2xl sm:rounded-3xl overflow-hidden bg-gradient-to-r from-slate-900 via-sky-950 to-blue-900 text-white shadow-lg sm:shadow-xl">
-        <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#38bdf8_1px,transparent_1px)] [background-size:16px_16px]"></div>
-        
-        <div className="relative p-5 sm:p-10 max-w-4xl">
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/15 text-sky-200 text-[10px] sm:text-xs font-semibold mb-3">
-            <Sparkles className="w-3 h-3 text-amber-400" />
-            Portal Tata Naskah Dinas Terpadu
+      {/* Hero Banner: Clean Slate Executive Chrome */}
+      <div className="relative rounded-2xl overflow-hidden bg-slate-900 text-white border border-slate-800 p-5 sm:p-8">
+        <div className="max-w-3xl">
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-800 border border-slate-700 text-sky-300 text-[11px] font-semibold mb-3">
+            <Building2 className="w-3.5 h-3.5 text-sky-400" />
+            BPS Kab. Kepulauan Selayar · Satker 7301
           </div>
           
-          <h2 className="text-xl sm:text-4xl font-extrabold tracking-tight text-white mb-1.5 sm:mb-2 leading-tight">
-            PUSAT <span className="text-sky-400 font-black">7301</span>
+          <h2 className="text-xl sm:text-3xl font-bold tracking-tight text-white mb-2 leading-tight">
+            PUSAT <span className="text-sky-400 font-mono">7301</span>
           </h2>
-          <p className="text-xs sm:text-lg text-sky-100/90 font-medium mb-4 sm:mb-6 max-w-2xl leading-relaxed">
-            Portal Umum Satu Pintu Badan Pusat Statistik Kabupaten Kepulauan Selayar. 
-            Kelola penomoran surat, surat tugas dinas, BAST, dan administrasi perkantoran secara instan dan akurat.
+          <p className="text-xs sm:text-sm text-slate-300 font-normal mb-5 max-w-2xl leading-relaxed">
+            Portal Tata Naskah Dinas Terpadu BPS Kab. Kepulauan Selayar. Registrasi nomor surat umum, 
+            surat tugas, BAST, dan belanja bahan dengan reset nomor otomatis per tahun kalender.
           </p>
 
           {/* Quick Search Input */}
           <form onSubmit={handleSearchSubmit} className="flex items-center gap-2 max-w-xl">
             <div className="relative flex-1">
-              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <Search aria-hidden="true" className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
               <input
                 type="text"
                 placeholder="Cari nomor surat, perihal, atau tujuan..."
+                aria-label="Pencarian global"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-3 py-2.5 sm:py-3.5 bg-white/95 text-slate-900 placeholder-slate-500 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-medium focus:outline-hidden focus:ring-2 focus:ring-sky-400 shadow-md transition-all"
+                className="w-full pl-10 pr-3 py-2 bg-slate-800/90 text-white placeholder-slate-400 border border-slate-700 rounded-lg text-xs sm:text-sm font-medium focus:outline-hidden focus:border-sky-500 focus:ring-1 focus:ring-sky-500 transition-colors"
               />
             </div>
             <button
               type="submit"
-              className="px-4 py-2.5 sm:px-5 sm:py-3.5 bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold text-xs sm:text-sm rounded-xl sm:rounded-2xl shadow-md transition-all active:scale-95"
+              className="px-4 py-2 bg-sky-500 hover:bg-sky-400 text-slate-950 font-semibold text-xs sm:text-sm rounded-lg transition-colors cursor-pointer"
             >
               Cari
             </button>
           </form>
 
-          {/* Mobile Quick Stats Badges */}
-          <div className="grid grid-cols-3 gap-2 mt-4 pt-3 border-t border-white/10 lg:hidden">
-            <div className="bg-white/10 rounded-xl p-2 text-center">
-              <div className="text-base font-black text-white">{counts.suratUmum}</div>
-              <div className="text-[10px] text-sky-200 font-medium">Surat Umum</div>
+          {/* Quick Stats Grid Mobile */}
+          <div className="grid grid-cols-3 gap-2 mt-4 pt-3 border-t border-slate-800 lg:hidden">
+            <div className="bg-slate-800/60 border border-slate-700/60 rounded-lg p-2 text-center">
+              <div className="text-base font-bold font-mono tabular-nums text-white">{counts.suratUmum}</div>
+              <div className="text-[10px] text-slate-400">Surat Umum</div>
             </div>
-            <div className="bg-white/10 rounded-xl p-2 text-center">
-              <div className="text-base font-black text-amber-400">{counts.suratTugas}</div>
-              <div className="text-[10px] text-sky-200 font-medium">Surat Tugas</div>
+            <div className="bg-slate-800/60 border border-slate-700/60 rounded-lg p-2 text-center">
+              <div className="text-base font-bold font-mono tabular-nums text-amber-400">{counts.suratTugas}</div>
+              <div className="text-[10px] text-slate-400">Surat Tugas</div>
             </div>
-            <div className="bg-white/10 rounded-xl p-2 text-center">
-              <div className="text-base font-black text-emerald-400">{counts.pegawai}</div>
-              <div className="text-[10px] text-sky-200 font-medium">Pegawai</div>
+            <div className="bg-slate-800/60 border border-slate-700/60 rounded-lg p-2 text-center">
+              <div className="text-base font-bold font-mono tabular-nums text-emerald-400">{counts.pegawai}</div>
+              <div className="text-[10px] text-slate-400">Pegawai</div>
             </div>
           </div>
-
         </div>
 
-        {/* Floating Quick Stats on Right (Desktop) */}
-        <div className="hidden lg:flex absolute right-10 bottom-8 items-center gap-4 bg-white/10 backdrop-blur-md border border-white/20 p-4 rounded-2xl">
-          <div className="text-center px-3 border-r border-white/15">
-            <div className="text-2xl font-black text-white">{counts.suratUmum}</div>
-            <div className="text-[11px] font-medium text-sky-200">Surat Keluar</div>
+        {/* Quick Stats Desktop */}
+        <div className="hidden lg:flex absolute right-8 bottom-8 items-center gap-3 bg-slate-800/70 border border-slate-700 p-3.5 rounded-xl">
+          <div className="text-center px-3 border-r border-slate-700">
+            <div className="text-xl font-bold font-mono tabular-nums text-white">{counts.suratUmum}</div>
+            <div className="text-[11px] text-slate-400">Surat Keluar</div>
           </div>
-          <div className="text-center px-3 border-r border-white/15">
-            <div className="text-2xl font-black text-amber-400">{counts.suratTugas}</div>
-            <div className="text-[11px] font-medium text-sky-200">Surat Tugas</div>
+          <div className="text-center px-3 border-r border-slate-700">
+            <div className="text-xl font-bold font-mono tabular-nums text-amber-400">{counts.suratTugas}</div>
+            <div className="text-[11px] text-slate-400">Surat Tugas</div>
           </div>
           <div className="text-center px-3">
-            <div className="text-2xl font-black text-emerald-400">{counts.pegawai}</div>
-            <div className="text-[11px] font-medium text-sky-200">Pegawai</div>
+            <div className="text-xl font-bold font-mono tabular-nums text-emerald-400">{counts.pegawai}</div>
+            <div className="text-[11px] text-slate-400">Pegawai</div>
           </div>
         </div>
       </div>
 
-      {/* Main Slide Portal Grid (2 columns on mobile, 3 columns on desktop!) */}
+      {/* Main Portal Cards Grid */}
       <div>
-        <div className="flex items-center justify-between mb-3 sm:mb-4">
+        <div className="flex items-center justify-between mb-3">
           <div>
-            <h3 className="text-base sm:text-lg font-extrabold text-slate-900 tracking-tight">
-              Layanan Administrasi PUSAT 7301
+            <h3 className="text-sm sm:text-base font-bold text-slate-900 tracking-tight">
+              Layanan Administrasi Naskah Dinas
             </h3>
             <p className="text-[11px] sm:text-xs text-slate-500">
-              Pilih modul naskah dinas atau buka tautan spreadsheet resmi
+              Pilih modul naskah atau akses tautan Google Drive / Spreadsheet resmi
             </p>
           </div>
 
           <button
+            type="button"
             onClick={onOpenQuickNumber}
-            className="text-[11px] sm:text-xs font-bold text-sky-600 hover:text-sky-700 bg-sky-50 hover:bg-sky-100 px-2.5 py-1.5 sm:px-3 sm:py-1.5 rounded-lg border border-sky-200 flex items-center gap-1 transition-colors"
+            className="text-xs font-semibold text-sky-700 hover:text-sky-800 bg-sky-50 hover:bg-sky-100 px-2.5 py-1.5 rounded-lg border border-sky-200 flex items-center gap-1 transition-colors cursor-pointer"
           >
             <span>+ Ambil Nomor</span>
           </button>
         </div>
 
-        {/* 2 columns on mobile, 3 columns on desktop */}
-        <div className="grid grid-cols-2 lg:grid-cols-3 gap-2.5 sm:gap-5">
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
           {portalCards.map((card) => {
             const Icon = card.icon;
             return (
               <div
                 key={card.id}
+                role="button"
+                tabIndex={0}
+                aria-label={card.title}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setActiveTab(card.id); } }}
                 onClick={() => setActiveTab(card.id)}
-                className="group relative bg-white border border-slate-200 rounded-2xl sm:rounded-3xl p-3.5 sm:p-6 shadow-xs hover:shadow-xl hover:border-sky-300 transition-all duration-300 cursor-pointer flex flex-col justify-between overflow-hidden"
+                className="group relative bg-white border border-slate-200 rounded-xl p-3.5 sm:p-5 shadow-xs hover:border-sky-300 hover:shadow-sm transition-all cursor-pointer flex flex-col justify-between"
               >
-                {/* Background Glow */}
-                <div className={`absolute top-0 right-0 w-24 h-24 sm:w-32 sm:h-32 bg-gradient-to-bl ${card.color} rounded-bl-full pointer-events-none transition-all group-hover:scale-125`}></div>
-
                 <div>
-                  <div className="flex items-start justify-between mb-2.5 sm:mb-4">
-                    {/* Clean Line Icon */}
-                    <div className="w-10 h-10 sm:w-16 sm:h-16 rounded-xl sm:rounded-2xl bg-slate-50 border border-slate-100 p-2 sm:p-3.5 flex items-center justify-center text-slate-800 group-hover:scale-110 group-hover:text-sky-600 group-hover:bg-sky-50 transition-all shadow-xs">
-                      <Icon className="w-full h-full stroke-[1.75]" />
+                  <div className="flex items-start justify-between mb-3">
+                    <div className={`w-9 h-9 sm:w-11 sm:h-11 rounded-lg border p-2 flex items-center justify-center shrink-0 ${card.iconColor}`}>
+                      <Icon className="w-5 h-5 stroke-[1.8]" />
                     </div>
 
-                    {/* External Link directly to Google Sheet/Drive */}
                     <a
                       href={card.sheetUrl}
                       target="_blank"
                       rel="noopener noreferrer"
                       onClick={(e) => e.stopPropagation()}
-                      className="text-slate-400 hover:text-sky-600 p-1 sm:p-2 hover:bg-sky-50 rounded-lg sm:rounded-xl transition-colors"
+                      className="text-slate-400 hover:text-sky-600 p-1 hover:bg-slate-100 rounded-md transition-colors"
                       title="Buka Spreadsheet / Google Drive Asli"
                     >
-                      <ExternalLink className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                      <ExternalLink className="w-3.5 h-3.5" />
                     </a>
                   </div>
 
-                  {/* Title & Subtitle */}
-                  <h4 className="text-xs sm:text-xl font-bold text-slate-900 group-hover:text-sky-600 transition-colors leading-tight mb-0.5 sm:mb-1">
+                  <h4 className="text-xs sm:text-base font-bold text-slate-900 group-hover:text-sky-700 transition-colors leading-snug mb-1">
                     {card.title}
                   </h4>
-                  <p className="text-[10px] sm:text-xs text-slate-500 font-medium line-clamp-1 mb-2 sm:mb-4">
+                  <p className="text-[11px] text-slate-500 font-normal line-clamp-1 mb-3">
                     {card.subtitle}
                   </p>
                 </div>
 
-                {/* Footer of Card */}
-                <div className="flex items-center justify-between pt-2 sm:pt-3 border-t border-slate-100">
+                <div className="flex items-center justify-between pt-2.5 border-t border-slate-100">
                   {card.count !== undefined ? (
-                    <span className={`text-[10px] sm:text-xs font-bold px-1.5 py-0.5 sm:px-2.5 sm:py-1 rounded-full ${card.badgeColor}`}>
+                    <span className={`text-[10px] sm:text-[11px] font-mono tabular-nums font-semibold px-2 py-0.5 rounded-md border ${card.badgeColor}`}>
                       {card.count} Data
                     </span>
                   ) : (
-                    <span className="text-[10px] sm:text-xs font-medium text-slate-400">
+                    <span className="text-[10px] sm:text-[11px] font-medium text-slate-400">
                       Cloud Drive
                     </span>
                   )}
 
-                  <span className="text-[10px] sm:text-xs font-bold text-slate-700 group-hover:text-sky-600 flex items-center gap-0.5 group-hover:translate-x-1 transition-all">
-                    Buka <ArrowRight className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                  <span className="text-[11px] font-semibold text-slate-600 group-hover:text-sky-700 flex items-center gap-0.5 transition-colors">
+                    Buka <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
                   </span>
                 </div>
               </div>
@@ -303,27 +296,31 @@ export const Dashboard: React.FC<DashboardProps> = ({
           })}
         </div>
 
-        {/* Bottom Card: Database Pegawai 7301 */}
+        {/* Database Pegawai Card */}
         <div
+          role="button"
+          tabIndex={0}
+          aria-label="Database Pegawai 7301"
+          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setActiveTab('pegawai'); } }}
           onClick={() => setActiveTab('pegawai')}
-          className="mt-3.5 sm:mt-5 group bg-gradient-to-r from-slate-900 via-sky-950 to-slate-900 text-white rounded-2xl sm:rounded-3xl p-4 sm:p-7 shadow-lg border border-slate-800 hover:border-sky-500 transition-all cursor-pointer flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4"
+          className="mt-3 sm:mt-4 group bg-slate-900 text-white rounded-xl p-4 sm:p-5 border border-slate-800 hover:border-slate-700 transition-all cursor-pointer flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
         >
           <div className="flex items-center gap-3 sm:gap-4 text-left w-full sm:w-auto">
-            <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-xl sm:rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 p-2.5 sm:p-3.5 flex items-center justify-center text-sky-400 flex-shrink-0 group-hover:scale-110 transition-transform">
-              <Users className="w-full h-full stroke-[1.75]" />
+            <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-lg bg-slate-800 border border-slate-700 p-2.5 flex items-center justify-center text-sky-400 shrink-0">
+              <Users className="w-6 h-6 stroke-[1.8]" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-sky-400 bg-sky-900/60 px-2 py-0.5 rounded-full border border-sky-700/50">
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-sky-300 bg-sky-950 px-2 py-0.5 rounded border border-sky-800/80">
                   Master Data
                 </span>
-                <span className="text-[10px] sm:text-xs font-semibold text-slate-400">26 Pegawai</span>
+                <span className="text-[11px] font-mono tabular-nums text-slate-400">{counts.pegawai} Pegawai</span>
               </div>
-              <h4 className="text-base sm:text-2xl font-black text-white tracking-tight mt-0.5 group-hover:text-sky-300 transition-colors">
+              <h4 className="text-sm sm:text-lg font-bold text-white tracking-tight mt-0.5 group-hover:text-sky-300 transition-colors">
                 Database Pegawai 7301
               </h4>
-              <p className="text-[11px] sm:text-xs text-slate-300 max-w-xl hidden sm:block">
-                Data induk pegawai BPS Kabupaten Kepulauan Selayar: NIP, Pangkat, Golongan, dan Jabatan untuk otomasi Surat Tugas dan SKP.
+              <p className="text-[11px] sm:text-xs text-slate-400 max-w-xl hidden sm:block">
+                Data induk pegawai BPS Kab. Kepulauan Selayar: NIP, Pangkat, Golongan, dan Jabatan untuk otomasi naskah dinas.
               </p>
             </div>
           </div>
@@ -334,47 +331,47 @@ export const Dashboard: React.FC<DashboardProps> = ({
               target="_blank"
               rel="noopener noreferrer"
               onClick={(e) => e.stopPropagation()}
-              className="px-3 py-2 sm:px-4 sm:py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-semibold text-white border border-white/15 flex items-center gap-1.5 transition-colors"
+              className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-300 border border-slate-700 flex items-center gap-1.5 transition-colors"
               title="Buka Google Sheet"
             >
               <ExternalLink className="w-3.5 h-3.5" />
-              <span className="text-[11px] sm:text-xs">Sheet</span>
+              <span className="text-xs">Sheet</span>
             </a>
 
             <button
-              className="flex-1 sm:flex-initial px-4 py-2 sm:px-5 sm:py-2.5 bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold text-xs sm:text-sm rounded-xl flex items-center justify-center gap-1.5 shadow-md transition-all active:scale-95"
+              type="button"
+              className="flex-1 sm:flex-initial px-3.5 py-1.5 bg-sky-500 hover:bg-sky-400 text-slate-950 font-semibold text-xs rounded-lg flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
             >
               <span>Kelola Pegawai</span>
-              <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              <ArrowRight className="w-3.5 h-3.5" />
             </button>
           </div>
         </div>
-
       </div>
 
-      {/* Info Satker & Penyimpanan */}
-      <div className="pt-2">
-        <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 border border-slate-200 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      {/* Info Status Footer */}
+      <div>
+        <div className="bg-white rounded-xl p-3.5 sm:p-4 border border-slate-200 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600 shrink-0">
-              <CheckCircle2 className="w-5 h-5 sm:w-6 sm:h-6" />
+            <div className="w-8 h-8 rounded-lg bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-600 shrink-0">
+              <CheckCircle2 className="w-4 h-4" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h5 className="text-xs sm:text-base font-bold text-slate-900">Penyimpanan & Sinkronisasi Portal</h5>
-                <span className="text-emerald-700 font-bold bg-emerald-50 text-[10px] sm:text-xs px-2 py-0.5 rounded-md border border-emerald-200">
+                <h5 className="text-xs sm:text-sm font-bold text-slate-900">Penyimpanan & Sinkronisasi Sistem</h5>
+                <span className="text-emerald-700 font-semibold bg-emerald-50 text-[10px] px-1.5 py-0.5 rounded border border-emerald-200">
                   ● Aktif
                 </span>
               </div>
-              <p className="text-[11px] sm:text-xs text-slate-500 mt-0.5">
-                Semua penomoran surat tersimpan di peramban, tersinkronisasi dengan Google Sheets resmi, dan dapat di-backup kapan saja.
+              <p className="text-[11px] text-slate-500 mt-0.5">
+                Data tersinkronisasi via IndexedDB/BroadcastChannel lokal & serverless PostgreSQL saat terhubung.
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-3 self-end sm:self-center text-[11px] sm:text-xs text-slate-500 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-200">
-            <span>Satuan Kerja:</span>
-            <strong className="text-slate-900 font-black">BPS Kab. Kepulauan Selayar (7301)</strong>
+          <div className="flex items-center gap-2 self-start sm:self-center text-xs text-slate-600 bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-200">
+            <span>Satker:</span>
+            <strong className="text-slate-900 font-semibold">BPS Kab. Kepulauan Selayar (7301)</strong>
           </div>
         </div>
       </div>

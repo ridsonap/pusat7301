@@ -1,4 +1,7 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
+import { newId } from '../utils/ids';
+import { copyText } from '../utils/clipboard';
+import { isValidDateString, isDuplicateNomor } from '../utils/validation';
 import { 
   FileText, 
   Plus, 
@@ -8,35 +11,74 @@ import {
   Trash2, 
   X, 
   Copy, 
-  Check
+  Check,
+  Pencil,
+  ChevronDown,
+  ChevronUp
 } from 'lucide-react';
 import { SuratPPK } from '../types';
 import { PORTAL_LINKS } from '../data/seedData';
-import { generateNomorSuratPPK, formatTanggalIndonesia, compareNomorUrutDesc, computeNextNomorUrut } from '../utils/formatters';
+import { 
+  generateNomorSuratPPK, 
+  formatTanggalIndonesia, 
+  compareNomorUrutDesc, 
+  computeNextNomorUrut,
+  parseTanggalToInputFormat,
+  getTahunFromTanggal,
+  getSortedKlasifikasiList
+} from '../utils/formatters';
 import { exportTableToCSV } from '../utils/storage';
 
 interface SuratPPKViewProps {
   ppkList: SuratPPK[];
   onAddPPK: (ppk: SuratPPK) => void;
+  onUpdatePPK: (p: SuratPPK) => void;
   onDeletePPK: (id: string) => void;
 }
 
 export const SuratPPKView: React.FC<SuratPPKViewProps> = ({
   ppkList,
   onAddPPK,
+  onUpdatePPK,
   onDeletePPK
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterJenis, setFilterJenis] = useState<'Semua' | 'Eksternal' | 'Internal'>('Semua');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [showOptionalFields, setShowOptionalFields] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const copyTimerRef = useRef<number | null>(null);
 
-  const nextNomorUrut = useMemo(() => {
-    return computeNextNomorUrut(ppkList);
+  useEffect(() => {
+    return () => {
+      if (copyTimerRef.current !== null) window.clearTimeout(copyTimerRef.current);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!isModalOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setIsModalOpen(false);
+        setEditingId(null);
+      }
+    };
+    document.addEventListener('keydown', onKey);
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.removeEventListener('keydown', onKey);
+      document.body.style.overflow = prev;
+    };
+  }, [isModalOpen]);
+
+  const sortedKlasifikasi = useMemo(() => {
+    return getSortedKlasifikasiList(ppkList);
   }, [ppkList]);
 
   const [formData, setFormData] = useState({
-    nomorUrut: String(nextNomorUrut),
+    nomorUrut: '1',
     tanggal: new Date().toISOString().slice(0, 10),
     jenisSurat: 'Eksternal' as 'Eksternal' | 'Internal',
     tujuan: '',
@@ -44,10 +86,21 @@ export const SuratPPKView: React.FC<SuratPPKViewProps> = ({
     perihal: ''
   });
 
+  // Hitung nomor urut dan tahun dinamis berdasarkan tanggal (reset ke 1 jika tahun berganti)
+  const activeTahun = getTahunFromTanggal(formData.tanggal);
+  const activeNomorUrut = editingId
+    ? formData.nomorUrut
+    : computeNextNomorUrut(ppkList, activeTahun);
+  const activeNomorSurat = generateNomorSuratPPK(activeNomorUrut, formData.kodeKlasifikasi, activeTahun);
+
   const handleOpenModal = () => {
+    setEditingId(null);
+    setShowOptionalFields(false);
+    const today = new Date().toISOString().slice(0, 10);
+    const yr = getTahunFromTanggal(today);
     setFormData({
-      nomorUrut: String(computeNextNomorUrut(ppkList)),
-      tanggal: new Date().toISOString().slice(0, 10),
+      nomorUrut: String(computeNextNomorUrut(ppkList, yr)),
+      tanggal: today,
       jenisSurat: 'Eksternal',
       tujuan: '',
       kodeKlasifikasi: 'PL.300',
@@ -56,36 +109,80 @@ export const SuratPPKView: React.FC<SuratPPKViewProps> = ({
     setIsModalOpen(true);
   };
 
+  const handleOpenEdit = (item: SuratPPK) => {
+    setEditingId(item.id);
+    setFormData({
+      nomorUrut: String(item.nomorUrut),
+      tanggal: parseTanggalToInputFormat(item.tanggal),
+      jenisSurat: item.jenisSurat,
+      tujuan: item.tujuan === '-' ? '' : item.tujuan,
+      kodeKlasifikasi: item.kodeKlasifikasi,
+      perihal: item.perihal
+    });
+    setShowOptionalFields(true);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setEditingId(null);
+  };
+
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.tujuan.trim() || !formData.perihal.trim()) {
-      alert('Harap isi Alamat Tujuan dan Perihal surat PPK.');
+    if (!formData.tanggal || !isValidDateString(formData.tanggal)) {
+      alert('Tanggal surat PPK tidak valid.');
       return;
     }
 
-    const tahun = new Date(formData.tanggal).getFullYear() || 2026;
-    const nomorSurat = generateNomorSuratPPK(formData.nomorUrut, formData.kodeKlasifikasi, tahun);
+    const matchingKlas = sortedKlasifikasi.find(k => k.kode === formData.kodeKlasifikasi);
+    const defaultPerihal = matchingKlas ? `Pengadaan/PPK: ${matchingKlas.uraian}` : 'Administrasi Pengadaan & BMN (PPK)';
+    const finalPerihal = formData.perihal.trim() || defaultPerihal;
+    const finalTujuan = formData.tujuan.trim() || '-';
+    const nomorSurat = activeNomorSurat;
 
-    const newPPK: SuratPPK = {
-      id: `ppk-${Date.now()}`,
-      nomorUrut: formData.nomorUrut,
-      tanggal: formatTanggalIndonesia(formData.tanggal),
-      jenisSurat: formData.jenisSurat,
-      tujuan: formData.tujuan.trim(),
-      kodeKlasifikasi: formData.kodeKlasifikasi,
-      nomorSurat: nomorSurat,
-      perihal: formData.perihal.trim(),
-      createdAt: new Date().toISOString()
-    };
+    if (isDuplicateNomor(ppkList, nomorSurat, editingId ?? undefined)) {
+      alert(`Nomor surat ${nomorSurat} sudah digunakan.`);
+      return;
+    }
 
-    onAddPPK(newPPK);
+    if (editingId) {
+      const existing = ppkList.find((x) => x.id === editingId);
+      onUpdatePPK({
+        id: editingId,
+        nomorUrut: formData.nomorUrut,
+        tanggal: formatTanggalIndonesia(formData.tanggal),
+        jenisSurat: formData.jenisSurat,
+        tujuan: finalTujuan,
+        kodeKlasifikasi: formData.kodeKlasifikasi,
+        nomorSurat: nomorSurat,
+        perihal: finalPerihal,
+        createdAt: existing?.createdAt
+      });
+    } else {
+      const newPPK: SuratPPK = {
+        id: newId('ppk'),
+        nomorUrut: activeNomorUrut,
+        tanggal: formatTanggalIndonesia(formData.tanggal),
+        jenisSurat: formData.jenisSurat,
+        tujuan: finalTujuan,
+        kodeKlasifikasi: formData.kodeKlasifikasi,
+        nomorSurat: nomorSurat,
+        perihal: finalPerihal,
+        createdAt: new Date().toISOString()
+      };
+      onAddPPK(newPPK);
+      copyToClipboard(nomorSurat, newPPK.id);
+    }
     setIsModalOpen(false);
+    setEditingId(null);
   };
 
-  const copyToClipboard = (text: string, id: string) => {
-    navigator.clipboard.writeText(text);
+  const copyToClipboard = async (text: string, id: string) => {
+    await copyText(text);
     setCopiedId(id);
-    setTimeout(() => setCopiedId(null), 2000);
+    if (copyTimerRef.current !== null) window.clearTimeout(copyTimerRef.current);
+    copyTimerRef.current = window.setTimeout(() => setCopiedId(null), 2000);
   };
 
   const filteredList = useMemo(() => {
@@ -117,52 +214,56 @@ export const SuratPPKView: React.FC<SuratPPKViewProps> = ({
   };
 
   return (
-    <div className="space-y-6 pb-12">
+    <div className="space-y-4 pb-12">
       
-      {/* Header */}
-      <div className="bg-white rounded-3xl p-5 sm:p-8 border border-slate-200 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="flex items-center gap-3.5 sm:gap-4">
-          <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-teal-50 border border-teal-100 p-2.5 sm:p-3 flex items-center justify-center text-teal-600 shrink-0">
-            <FileText className="w-full h-full stroke-[1.75]" />
+      {/* Header Banner */}
+      <div className="bg-white rounded-xl p-4 sm:p-5 border border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-lg bg-sky-50 border border-sky-100 flex items-center justify-center text-sky-700 shrink-0">
+            <FileText className="w-5 h-5 stroke-[1.5]" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-teal-700 bg-teal-50 px-2.5 py-0.5 rounded-full border border-teal-200">
-                Pengadaan Barang/Jasa
+              <span className="text-[11px] font-semibold text-sky-800 bg-sky-50 px-2 py-0.5 rounded border border-sky-200">
+                Surat PPK
               </span>
-              <span className="text-[10px] sm:text-xs font-semibold text-slate-500">BPS Kab. Kepulauan Selayar</span>
+              <span className="text-xs text-slate-500">Satker 7301</span>
             </div>
-            <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight mt-1">
-              Surat PPK (Pejabat Pembuat Komitmen)
+            <h2 className="text-lg font-bold text-slate-900 tracking-tight mt-0.5">
+              Penomoran Surat PPK & Pengadaan
             </h2>
-            <p className="text-xs sm:text-sm text-slate-500">
-              Penomoran SPMK (Surat Perintah Mulai Kerja), Berita Acara Penetapan HPS & RAB, dan naskah dinas pengadaan.
+            <p className="text-xs text-slate-500">
+              Input tanggal dan kategori arsip untuk nomor dinas Pejabat Pembuat Komitmen.
             </p>
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+        <div className="flex flex-wrap items-center gap-2">
           <a
             href={PORTAL_LINKS.suratPPK}
             target="_blank"
             rel="noopener noreferrer"
-            className="px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs sm:text-sm font-semibold flex items-center gap-1.5 sm:gap-2 transition-colors"
+            className="px-2.5 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-medium flex items-center gap-1.5 transition-colors"
+            title="Buka Spreadsheet Asli Surat PPK"
           >
-            <ExternalLink className="w-4 h-4 text-slate-400" />
+            <ExternalLink className="w-3.5 h-3.5 text-slate-400" />
             <span>Sheet</span>
           </a>
 
           <button
+            type="button"
             onClick={handleExportCSV}
-            className="px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs sm:text-sm font-semibold flex items-center gap-1.5 sm:gap-2 transition-colors"
+            className="px-2.5 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-medium flex items-center gap-1.5 transition-colors"
+            title="Ekspor CSV"
           >
-            <Download className="w-4 h-4 text-slate-400" />
+            <Download className="w-3.5 h-3.5 text-slate-400" />
             <span>CSV</span>
           </button>
 
           <button
+            type="button"
             onClick={handleOpenModal}
-            className="flex-1 sm:flex-none justify-center px-4 py-2 sm:py-2.5 rounded-xl bg-teal-600 hover:bg-teal-500 text-white text-xs sm:text-sm font-bold flex items-center gap-2 shadow-xs hover:shadow-md transition-all active:scale-95"
+            className="px-3.5 py-1.5 rounded-lg bg-sky-600 hover:bg-sky-700 text-white text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-xs"
           >
             <Plus className="w-4 h-4" />
             <span>Buat Surat PPK</span>
@@ -170,26 +271,27 @@ export const SuratPPKView: React.FC<SuratPPKViewProps> = ({
         </div>
       </div>
 
-      {/* Filter and Search */}
-      <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs flex flex-col md:flex-row gap-3 items-center justify-between">
+      {/* Filter and Search Bar */}
+      <div className="bg-white rounded-xl p-3 border border-slate-200 flex flex-col md:flex-row gap-2.5 items-center justify-between">
         <div className="relative w-full md:w-80">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
           <input
             type="text"
-            placeholder="Cari nomor surat PPK, perihal, atau rekanan..."
+            placeholder="Cari nomor, perihal, atau tujuan..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm focus:outline-hidden focus:ring-2 focus:ring-teal-500 transition-all"
+            className="w-full pl-9 pr-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:outline-hidden focus:ring-1 focus:ring-sky-500"
           />
         </div>
 
-        <div className="flex items-center justify-center gap-1 bg-slate-100 p-1 rounded-xl text-xs font-semibold w-full md:w-auto">
+        <div className="flex items-center gap-1 bg-slate-100 p-0.5 rounded-lg text-xs font-medium">
           {(['Semua', 'Eksternal', 'Internal'] as const).map((j) => (
             <button
               key={j}
+              type="button"
               onClick={() => setFilterJenis(j)}
-              className={`flex-1 md:flex-none px-3 py-1.5 rounded-lg transition-all text-center ${
-                filterJenis === j ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600 hover:text-slate-900'
+              className={`px-2.5 py-1 rounded-md text-xs transition-colors ${
+                filterJenis === j ? 'bg-white text-slate-900 shadow-2xs font-semibold' : 'text-slate-600 hover:text-slate-900'
               }`}
             >
               {j}
@@ -198,76 +300,56 @@ export const SuratPPKView: React.FC<SuratPPKViewProps> = ({
         </div>
       </div>
 
-      {/* Mobile Row View (md:hidden) */}
-      <div className="md:hidden bg-white rounded-2xl border border-slate-200 shadow-xs divide-y divide-slate-100 overflow-hidden">
+      {/* Mobile Compact List */}
+      <div className="md:hidden bg-white rounded-xl border border-slate-200 divide-y divide-slate-100 overflow-hidden">
         {filteredList.length === 0 ? (
-          <div className="p-8 text-center text-slate-400 text-xs">
-            Tidak ada surat PPK yang sesuai pencarian.
+          <div className="p-6 text-center text-slate-400 text-xs">
+            Tidak ada surat PPK yang ditemukan.
           </div>
         ) : (
           filteredList.map((item) => (
-            <div
-              key={item.id}
-              className="p-3.5 hover:bg-slate-50/70 transition-colors flex items-start justify-between gap-3"
-            >
-              {/* Kolom Kiri: Badge & Info Surat PPK */}
-              <div className="flex items-start gap-2.5 min-w-0 flex-1">
-                <span className="w-7 h-7 rounded-xl bg-slate-100 text-slate-800 text-[11px] font-mono font-bold flex items-center justify-center shrink-0 border border-slate-200/80 mt-0.5">
-                  {item.nomorUrut}
-                </span>
-
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-1.5 flex-wrap">
-                    <span className="font-mono font-bold text-xs text-teal-950 tracking-tight">
-                      {item.nomorSurat}
-                    </span>
-                    <span className="text-[10px] text-slate-400 font-medium">• {item.tanggal}</span>
-                  </div>
-
-                  <p className="text-xs font-semibold text-slate-900 mt-0.5 line-clamp-2 leading-snug">
-                    {item.perihal}
-                  </p>
-
-                  <div className="flex items-center gap-1.5 mt-1.5 text-[10px] text-slate-500 flex-wrap">
-                    {item.tujuan && (
-                      <span className="bg-slate-100 px-2 py-0.5 rounded-md font-medium text-slate-700">
-                        {item.tujuan}
-                      </span>
-                    )}
-                    <span
-                      className={`inline-block px-1.5 py-0.5 rounded-md text-[10px] font-bold ${
-                        item.jenisSurat === 'Internal'
-                          ? 'bg-blue-50 text-blue-700'
-                          : 'bg-teal-50 text-teal-800'
-                      }`}
-                    >
-                      {item.jenisSurat}
-                    </span>
-                    {item.kodeKlasifikasi && (
-                      <span className="bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded-md font-mono font-semibold">
-                        {item.kodeKlasifikasi}
-                      </span>
-                    )}
-                  </div>
+            <div key={item.id} className="p-2.5 hover:bg-slate-50/70 transition-colors flex items-center justify-between gap-2">
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <span className="font-mono text-xs font-bold text-sky-900">{item.nomorSurat}</span>
+                  <span className="text-[10px] text-slate-500 font-mono">• {item.tanggal}</span>
+                  <span className="text-[10px] font-mono px-1 py-0.2 bg-slate-100 text-slate-600 rounded">
+                    {item.kodeKlasifikasi}
+                  </span>
                 </div>
+                <p className="text-xs text-slate-800 truncate mt-0.5" title={item.perihal}>
+                  {item.perihal}
+                </p>
+                {item.tujuan && item.tujuan !== '-' && (
+                  <p className="text-[11px] text-slate-500 truncate">
+                    Tujuan: {item.tujuan}
+                  </p>
+                )}
               </div>
 
-              {/* Kolom Kanan: Aksi Cepat */}
-              <div className="flex items-center gap-1 shrink-0 self-center">
+              <div className="flex items-center gap-1 shrink-0">
                 <button
+                  type="button"
                   onClick={() => copyToClipboard(item.nomorSurat, item.id)}
-                  className="p-2 text-slate-500 hover:text-teal-600 bg-slate-50 hover:bg-teal-50 rounded-xl transition-colors border border-slate-200/80"
-                  title="Salin Nomor Surat"
+                  className="p-1.5 text-slate-500 hover:text-sky-700 hover:bg-slate-100 rounded-lg transition-colors"
+                  title="Salin Nomor"
                 >
                   {copiedId === item.id ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
                 </button>
                 <button
+                  type="button"
+                  onClick={() => handleOpenEdit(item)}
+                  className="p-1.5 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors"
+                  title="Edit"
+                >
+                  <Pencil className="w-3.5 h-3.5" />
+                </button>
+                <button
+                  type="button"
                   onClick={() => {
-                    if (confirm(`Hapus surat PPK nomor ${item.nomorSurat}?`)) {
-                      onDeletePPK(item.id);
-                    }
+                    if (confirm(`Hapus surat PPK ${item.nomorSurat}?`)) onDeletePPK(item.id);
                   }}
-                  className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-colors"
+                  className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
                   title="Hapus"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
@@ -278,49 +360,46 @@ export const SuratPPKView: React.FC<SuratPPKViewProps> = ({
         )}
       </div>
 
-      {/* Table (hidden md:block) */}
-      <div className="hidden md:block bg-white rounded-3xl border border-slate-200 shadow-xs overflow-hidden">
+      {/* Desktop Dense Table View */}
+      <div className="hidden md:block bg-white rounded-xl border border-slate-200 overflow-hidden shadow-2xs">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs sm:text-sm">
-            <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 font-bold uppercase tracking-wider text-[11px]">
+          <table className="w-full text-left text-xs">
+            <thead className="bg-slate-50/90 border-b border-slate-200 text-slate-500 font-semibold uppercase tracking-wider text-[11px]">
               <tr>
-                <th className="py-3.5 px-4 w-14 text-center">No</th>
-                <th className="py-3.5 px-4 w-32">Tanggal</th>
-                <th className="py-3.5 px-4 w-28">Jenis</th>
-                <th className="py-3.5 px-4 w-48">Nomor Surat PPK</th>
-                <th className="py-3.5 px-4">Alamat / Rekanan</th>
-                <th className="py-3.5 px-4">Perihal</th>
-                <th className="py-3.5 px-4 w-20 text-center">Aksi</th>
+                <th scope="col" className="py-2 px-2.5 w-12 text-center">No</th>
+                <th scope="col" className="py-2 px-2.5 w-28">Tanggal</th>
+                <th scope="col" className="py-2 px-2.5 w-60">Nomor Surat PPK</th>
+                <th scope="col" className="py-2 px-2.5 w-24">Klasifikasi</th>
+                <th scope="col" className="py-2 px-2.5">Perihal</th>
+                <th scope="col" className="py-2 px-2.5 w-44">Alamat Tujuan</th>
+                <th scope="col" className="py-2 px-2.5 w-20 text-center">Jenis</th>
+                <th scope="col" className="py-2 px-2.5 w-20 text-center">Aksi</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {filteredList.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="py-12 text-center text-slate-400">
-                    Tidak ada surat PPK yang sesuai pencarian.
+                  <td colSpan={8} className="py-8 text-center text-slate-400">
+                    Tidak ada surat PPK yang sesuai kriteria pencarian.
                   </td>
                 </tr>
               ) : (
                 filteredList.map((item) => (
                   <tr key={item.id} className="hover:bg-slate-50/80 transition-colors">
-                    <td className="py-3 px-4 font-mono font-bold text-center text-slate-500">
+                    <td className="py-1.5 px-2.5 font-mono text-center text-slate-500 tabular-nums">
                       {item.nomorUrut}
                     </td>
-                    <td className="py-3 px-4 text-slate-600 whitespace-nowrap">
+                    <td className="py-1.5 px-2.5 text-slate-600 whitespace-nowrap tabular-nums">
                       {item.tanggal}
                     </td>
-                    <td className="py-3 px-4">
-                      <span className="inline-block px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-teal-50 text-teal-800 border border-teal-200">
-                        {item.jenisSurat}
-                      </span>
-                    </td>
-                    <td className="py-3 px-4 font-mono font-bold text-teal-900 whitespace-nowrap">
+                    <td className="py-1.5 px-2.5 font-mono font-bold text-sky-900 whitespace-nowrap">
                       <div className="flex items-center gap-1.5">
-                        <span>{item.nomorSurat}</span>
+                        <span className="select-all">{item.nomorSurat}</span>
                         <button
+                          type="button"
                           onClick={() => copyToClipboard(item.nomorSurat, item.id)}
-                          className="text-slate-400 hover:text-teal-600 p-1 rounded-md transition-colors"
-                          title="Salin Nomor Surat"
+                          className="text-slate-400 hover:text-sky-600 p-0.5 rounded transition-colors"
+                          title="Salin Nomor"
                         >
                           {copiedId === item.id ? (
                             <Check className="w-3.5 h-3.5 text-emerald-600" />
@@ -330,24 +409,55 @@ export const SuratPPKView: React.FC<SuratPPKViewProps> = ({
                         </button>
                       </div>
                     </td>
-                    <td className="py-3 px-4 font-medium text-slate-800">
-                      {item.tujuan}
+                    <td className="py-1.5 px-2.5">
+                      <span className="font-mono text-[11px] px-1.5 py-0.5 bg-slate-100 rounded text-slate-700">
+                        {item.kodeKlasifikasi}
+                      </span>
                     </td>
-                    <td className="py-3 px-4 text-slate-700">
-                      <div className="line-clamp-2">{item.perihal}</div>
+                    <td className="py-1.5 px-2.5 text-slate-700 max-w-sm">
+                      <span className="truncate block" title={item.perihal}>
+                        {item.perihal}
+                      </span>
                     </td>
-                    <td className="py-3 px-4 text-center">
-                      <button
-                        onClick={() => {
-                          if (confirm(`Hapus surat PPK nomor ${item.nomorSurat}?`)) {
-                            onDeletePPK(item.id);
-                          }
-                        }}
-                        className="text-slate-400 hover:text-rose-600 p-1.5 rounded-lg hover:bg-rose-50 transition-colors"
-                        title="Hapus"
+                    <td className="py-1.5 px-2.5 text-slate-600 max-w-44">
+                      <span className="truncate block" title={item.tujuan}>
+                        {item.tujuan || '-'}
+                      </span>
+                    </td>
+                    <td className="py-1.5 px-2.5 text-center">
+                      <span
+                        className={`inline-block px-1.5 py-0.2 rounded text-[10px] font-medium ${
+                          item.jenisSurat === 'Internal'
+                            ? 'bg-slate-100 text-slate-700'
+                            : 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                        }`}
                       >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                        {item.jenisSurat}
+                      </span>
+                    </td>
+                    <td className="py-1.5 px-2.5 text-center">
+                      <div className="flex items-center justify-center gap-1">
+                        <button
+                          type="button"
+                          onClick={() => handleOpenEdit(item)}
+                          className="text-slate-400 hover:text-slate-700 p-1 rounded hover:bg-slate-100 transition-colors"
+                          title="Edit"
+                        >
+                          <Pencil className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (confirm(`Yakin ingin menghapus surat PPK ${item.nomorSurat}?`)) {
+                              onDeletePPK(item.id);
+                            }
+                          }}
+                          className="text-slate-400 hover:text-rose-600 p-1 rounded hover:bg-rose-50 transition-colors"
+                          title="Hapus"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))
@@ -356,133 +466,177 @@ export const SuratPPKView: React.FC<SuratPPKViewProps> = ({
           </table>
         </div>
 
-        <div className="py-3 px-6 bg-slate-50 border-t border-slate-200 text-xs text-slate-500 flex justify-between items-center">
-          <span>Menampilkan {filteredList.length} dari {ppkList.length} total Surat PPK</span>
-          <span className="font-semibold text-slate-700">Kode Klasifikasi PL.300</span>
+        {/* Footer Info */}
+        <div className="py-2 px-3 bg-slate-50 border-t border-slate-200 text-xs text-slate-500 flex justify-between items-center">
+          <span>Menampilkan {filteredList.length} dari {ppkList.length} surat PPK</span>
+          <span className="font-mono text-slate-600">Tahun Aktif: {new Date().getFullYear()}</span>
         </div>
       </div>
 
-      {/* Modal Tambah Surat PPK */}
+      {/* Modal: Input Tanggal & Kategori Saja */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-fadeIn">
-          <div className="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl border border-slate-200">
-            <div className="flex items-center justify-between pb-4 mb-4 border-b border-slate-100">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-teal-50 border border-teal-100 flex items-center justify-center text-teal-600">
-                  <FileText className="w-5 h-5" />
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-2xs"
+          onClick={handleCloseModal}
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label={editingId ? 'Edit Surat PPK' : 'Buat Surat PPK Baru'}
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white rounded-xl max-w-md w-full p-5 shadow-xl border border-slate-200 max-h-[90vh] overflow-y-auto"
+          >
+            <div className="flex items-center justify-between pb-3 mb-3 border-b border-slate-100">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-sky-50 border border-sky-100 flex items-center justify-center text-sky-700">
+                  <FileText className="w-4 h-4 stroke-[1.5]" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-black text-slate-900">Buat Surat PPK Baru</h3>
-                  <p className="text-xs text-slate-500">Penomoran naskah dinas Pejabat Pembuat Komitmen</p>
+                  <h3 className="text-sm font-bold text-slate-900">
+                    {editingId ? 'Edit Surat PPK' : 'Buat Surat PPK Baru'}
+                  </h3>
+                  <p className="text-[11px] text-slate-500">
+                    Pilih tanggal dan kategori pengadaan untuk nomor otomatis
+                  </p>
                 </div>
               </div>
               <button
-                onClick={() => setIsModalOpen(false)}
-                className="text-slate-400 hover:text-slate-600 p-2 rounded-xl hover:bg-slate-100"
+                type="button"
+                onClick={handleCloseModal}
+                className="text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-100"
               >
-                <X className="w-5 h-5" />
+                <X className="w-4 h-4" />
               </button>
             </div>
 
-            <form onSubmit={handleFormSubmit} className="space-y-4">
+            <form onSubmit={handleFormSubmit} className="space-y-3.5">
               
-              <div className="bg-teal-50/80 border border-teal-200 p-4 rounded-2xl">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-teal-800">
-                  Nomor Surat PPK Diterbitkan
-                </span>
-                <div className="text-base sm:text-lg font-mono font-black text-teal-950 mt-0.5">
-                  {generateNomorSuratPPK(formData.nomorUrut, formData.kodeKlasifikasi, new Date(formData.tanggal).getFullYear() || 2026)}
+              {/* Preview Auto-generated Nomor Surat */}
+              <div className="bg-slate-50 border border-slate-200 p-3 rounded-lg">
+                <div className="flex items-center justify-between mb-1 text-[11px]">
+                  <span className="text-slate-500 font-medium">Nomor Surat PPK</span>
+                  <span className="font-mono text-sky-700 font-semibold">
+                    #{activeNomorUrut} • Tahun {activeTahun}
+                  </span>
+                </div>
+                <div className="text-base font-mono font-bold text-slate-900 tracking-tight">
+                  {activeNomorSurat}
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
-                    Nomor Urut <span className="text-[10px] text-slate-400 font-normal">(bisa 20.1)</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.nomorUrut}
-                    onChange={(e) => setFormData({ ...formData, nomorUrut: e.target.value })}
-                    placeholder="Contoh: 10 atau 10.1"
-                    className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm font-mono focus:ring-2 focus:ring-teal-500 focus:outline-hidden"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Tanggal</label>
-                  <input
-                    type="date"
-                    value={formData.tanggal}
-                    onChange={(e) => setFormData({ ...formData, tanggal: e.target.value })}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-teal-500 focus:outline-hidden"
-                    required
-                  />
-                </div>
-              </div>
-
+              {/* 1. INPUT TANGGAL */}
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Jenis Surat</label>
-                <div className="grid grid-cols-2 gap-2">
-                  {(['Eksternal', 'Internal'] as const).map((j) => (
-                    <button
-                      key={j}
-                      type="button"
-                      onClick={() => setFormData({ ...formData, jenisSurat: j })}
-                      className={`py-2 px-4 rounded-xl text-xs font-bold border transition-all ${
-                        formData.jenisSurat === j
-                          ? 'bg-teal-600 text-white border-teal-600 shadow-xs'
-                          : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
-                      }`}
-                    >
-                      {j}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
-                  Alamat / Rekanan / Tujuan <span className="text-rose-500">*</span>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  Tanggal Surat <span className="text-rose-500">*</span>
                 </label>
                 <input
-                  type="text"
-                  placeholder="Contoh: PT. Rezky Service System / BPS Selayar"
-                  value={formData.tujuan}
-                  onChange={(e) => setFormData({ ...formData, tujuan: e.target.value })}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-teal-500 focus:outline-hidden"
+                  type="date"
+                  value={formData.tanggal}
+                  onChange={(e) => setFormData({ ...formData, tanggal: e.target.value })}
+                  className="w-full px-3 py-1.5 border border-slate-200 rounded-lg text-xs font-medium bg-white focus:outline-hidden focus:ring-1 focus:ring-sky-500"
                   required
                 />
+                <p className="text-[10px] text-slate-400 mt-0.5">
+                  Nomor urut otomatis dimulai dari 1 saat tahun berganti.
+                </p>
               </div>
 
+              {/* 2. INPUT KATEGORI (Kode Klasifikasi) */}
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
-                  Perihal <span className="text-rose-500">*</span>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  Kategori Pengadaan / Kode Klasifikasi <span className="text-rose-500">*</span>
                 </label>
-                <textarea
-                  rows={2}
-                  placeholder="Contoh: Surat Perintah Mulai Kerja (SPMK) Tenaga Outsourcing Cleaning Service Tahun 2026"
-                  value={formData.perihal}
-                  onChange={(e) => setFormData({ ...formData, perihal: e.target.value })}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-teal-500 focus:outline-hidden"
-                  required
-                />
+                <select
+                  value={formData.kodeKlasifikasi}
+                  onChange={(e) => setFormData({ ...formData, kodeKlasifikasi: e.target.value })}
+                  className="w-full px-2.5 py-1.5 border border-slate-200 rounded-lg text-xs font-medium focus:outline-hidden focus:ring-1 focus:ring-sky-500"
+                >
+                  {sortedKlasifikasi.map((k) => (
+                    <option key={k.kode} value={k.kode}>
+                      {k.kode} - {k.kategori} ({k.uraian})
+                    </option>
+                  ))}
+                </select>
               </div>
 
-              <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
+              {/* Toggle Rincian Tambahan (Opsional) */}
+              <div className="pt-1">
                 <button
                   type="button"
-                  onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-100 text-xs sm:text-sm font-semibold transition-colors"
+                  onClick={() => setShowOptionalFields(!showOptionalFields)}
+                  className="w-full flex items-center justify-between text-xs text-slate-600 hover:text-slate-900 py-1 border-t border-slate-100"
+                >
+                  <span className="font-medium">Rincian Tambahan (Opsional)</span>
+                  {showOptionalFields ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                </button>
+
+                {showOptionalFields && (
+                  <div className="space-y-2.5 pt-2 animate-fadeIn">
+                    <div>
+                      <label className="block text-[11px] font-medium text-slate-700 mb-0.5">
+                        Alamat / Tujuan Surat
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="Contoh: Penyedia / Rekanan Pengadaan"
+                        value={formData.tujuan}
+                        onChange={(e) => setFormData({ ...formData, tujuan: e.target.value })}
+                        className="w-full px-2.5 py-1.5 border border-slate-200 rounded-lg text-xs focus:outline-hidden focus:ring-1 focus:ring-sky-500"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] font-medium text-slate-700 mb-0.5">
+                        Perihal Surat PPK
+                      </label>
+                      <textarea
+                        rows={2}
+                        placeholder="Jika kosong, terisi otomatis sesuai nama kategori"
+                        value={formData.perihal}
+                        onChange={(e) => setFormData({ ...formData, perihal: e.target.value })}
+                        className="w-full px-2.5 py-1.5 border border-slate-200 rounded-lg text-xs focus:outline-hidden focus:ring-1 focus:ring-sky-500"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] font-medium text-slate-700 mb-1">
+                        Jenis Surat
+                      </label>
+                      <div className="grid grid-cols-2 gap-2">
+                        {(['Eksternal', 'Internal'] as const).map((j) => (
+                          <button
+                            key={j}
+                            type="button"
+                            onClick={() => setFormData({ ...formData, jenisSurat: j })}
+                            className={`py-1 px-3 rounded-lg text-xs font-medium border transition-colors ${
+                              formData.jenisSurat === j
+                                ? 'bg-slate-900 text-white border-slate-900'
+                                : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
+                            }`}
+                          >
+                            {j}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={handleCloseModal}
+                  className="px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 text-xs font-medium transition-colors"
                 >
                   Batal
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2.5 rounded-xl bg-teal-600 hover:bg-teal-500 text-white text-xs sm:text-sm font-bold shadow-md transition-all active:scale-95"
+                  className="px-4 py-1.5 rounded-lg bg-sky-600 hover:bg-sky-700 text-white text-xs font-semibold shadow-xs transition-colors"
                 >
-                  Simpan Surat PPK
+                  {editingId ? 'Simpan Perubahan' : 'Buat Surat PPK'}
                 </button>
               </div>
 

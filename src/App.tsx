@@ -1,6 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { ActiveTab, SuratUmum, SuratTugas, SKKegiatan, BAST, FormPermintaan, SuratPPK, SKPItem, Pegawai } from './types';
 import { loadAllState, saveStoredData, resetAllData, STORAGE_KEYS } from './utils/storage';
+import type { GasModuleData } from './utils/gasSync';
+import {
+  DbStatus,
+  fetchRemoteRecords,
+  saveRecordRemote,
+  deleteRecordRemote,
+  onMultiUserSync,
+  checkServerStatus
+} from './utils/api';
 import { Header } from './components/Header';
 import { Navigation } from './components/Navigation';
 import { Dashboard } from './components/Dashboard';
@@ -21,42 +30,54 @@ export const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<ActiveTab>('dashboard');
   const [isQuickNumberOpen, setIsQuickNumberOpen] = useState(false);
   const [isSyncModalOpen, setIsSyncModalOpen] = useState(false);
+  const [dbStatus, setDbStatus] = useState<DbStatus | undefined>();
 
   // Application Data States
   const [state, setState] = useState(() => loadAllState());
+  const [globalSearch, setGlobalSearch] = useState('');
 
-  // Save to localStorage when state changes
-  useEffect(() => {
-    saveStoredData(STORAGE_KEYS.PEGAWAI, state.pegawai);
-  }, [state.pegawai]);
+  // Sinkronisasi Multi-User Remote (Postgres / API)
+  const syncWithRemote = useCallback(async () => {
+    const status = await checkServerStatus();
+    setDbStatus(status);
 
-  useEffect(() => {
-    saveStoredData(STORAGE_KEYS.SURAT_UMUM, state.suratUmum);
-  }, [state.suratUmum]);
-
-  useEffect(() => {
-    saveStoredData(STORAGE_KEYS.SURAT_TUGAS, state.suratTugas);
-  }, [state.suratTugas]);
-
-  useEffect(() => {
-    saveStoredData(STORAGE_KEYS.SK_KEGIATAN, state.skKegiatan);
-  }, [state.skKegiatan]);
-
-  useEffect(() => {
-    saveStoredData(STORAGE_KEYS.BAST, state.bast);
-  }, [state.bast]);
-
-  useEffect(() => {
-    saveStoredData(STORAGE_KEYS.FORM_PERMINTAAN, state.formPermintaan);
-  }, [state.formPermintaan]);
+    const remote = await fetchRemoteRecords();
+    if (remote.success && remote.data) {
+      setState(prev => ({
+        pegawai: Array.isArray(remote.data?.pegawai) && remote.data.pegawai.length > 0 ? remote.data.pegawai : prev.pegawai,
+        suratUmum: Array.isArray(remote.data?.suratUmum) && remote.data.suratUmum.length > 0 ? remote.data.suratUmum : prev.suratUmum,
+        suratTugas: Array.isArray(remote.data?.suratTugas) && remote.data.suratTugas.length > 0 ? remote.data.suratTugas : prev.suratTugas,
+        skKegiatan: Array.isArray(remote.data?.skKegiatan) && remote.data.skKegiatan.length > 0 ? remote.data.skKegiatan : prev.skKegiatan,
+        bast: Array.isArray(remote.data?.bast) && remote.data.bast.length > 0 ? remote.data.bast : prev.bast,
+        formPermintaan: Array.isArray(remote.data?.formPermintaan) && remote.data.formPermintaan.length > 0 ? remote.data.formPermintaan : prev.formPermintaan,
+        suratPPK: Array.isArray(remote.data?.suratPPK) && remote.data.suratPPK.length > 0 ? remote.data.suratPPK : prev.suratPPK,
+        skp: Array.isArray(remote.data?.skp) && remote.data.skp.length > 0 ? remote.data.skp : prev.skp,
+      }));
+    }
+  }, []);
 
   useEffect(() => {
-    saveStoredData(STORAGE_KEYS.SURAT_PPK, state.suratPPK);
-  }, [state.suratPPK]);
+    syncWithRemote();
+    const unsub = onMultiUserSync(() => {
+      syncWithRemote();
+    });
+    return () => unsub();
+  }, [syncWithRemote]);
 
+  // Save to localStorage when state changes (debounced agar tidak 8x serialize tiap ketik)
   useEffect(() => {
-    saveStoredData(STORAGE_KEYS.SKP, state.skp);
-  }, [state.skp]);
+    const t = setTimeout(() => {
+      saveStoredData(STORAGE_KEYS.PEGAWAI, state.pegawai);
+      saveStoredData(STORAGE_KEYS.SURAT_UMUM, state.suratUmum);
+      saveStoredData(STORAGE_KEYS.SURAT_TUGAS, state.suratTugas);
+      saveStoredData(STORAGE_KEYS.SK_KEGIATAN, state.skKegiatan);
+      saveStoredData(STORAGE_KEYS.BAST, state.bast);
+      saveStoredData(STORAGE_KEYS.FORM_PERMINTAAN, state.formPermintaan);
+      saveStoredData(STORAGE_KEYS.SURAT_PPK, state.suratPPK);
+      saveStoredData(STORAGE_KEYS.SKP, state.skp);
+    }, 400);
+    return () => clearTimeout(t);
+  }, [state]);
 
   // Counts for Badges
   const counts = {
@@ -75,6 +96,7 @@ export const App: React.FC = () => {
       ...prev,
       suratUmum: [newSurat, ...prev.suratUmum]
     }));
+    saveRecordRemote('suratUmum', newSurat, false);
   };
 
   const handleDeleteSuratUmum = (id: string) => {
@@ -82,6 +104,7 @@ export const App: React.FC = () => {
       ...prev,
       suratUmum: prev.suratUmum.filter(s => s.id !== id)
     }));
+    deleteRecordRemote('suratUmum', id);
   };
 
   // Handlers for Surat Tugas
@@ -90,6 +113,7 @@ export const App: React.FC = () => {
       ...prev,
       suratTugas: [newSurat, ...prev.suratTugas]
     }));
+    saveRecordRemote('suratTugas', newSurat, false);
   };
 
   const handleDeleteSuratTugas = (id: string) => {
@@ -97,6 +121,7 @@ export const App: React.FC = () => {
       ...prev,
       suratTugas: prev.suratTugas.filter(s => s.id !== id)
     }));
+    deleteRecordRemote('suratTugas', id);
   };
 
   // Handlers for SK Kegiatan
@@ -105,6 +130,7 @@ export const App: React.FC = () => {
       ...prev,
       skKegiatan: [newSK, ...prev.skKegiatan]
     }));
+    saveRecordRemote('skKegiatan', newSK, false);
   };
 
   const handleDeleteSK = (id: string) => {
@@ -112,6 +138,7 @@ export const App: React.FC = () => {
       ...prev,
       skKegiatan: prev.skKegiatan.filter(s => s.id !== id)
     }));
+    deleteRecordRemote('skKegiatan', id);
   };
 
   // Handlers for BAST
@@ -120,6 +147,7 @@ export const App: React.FC = () => {
       ...prev,
       bast: [newBAST, ...prev.bast]
     }));
+    saveRecordRemote('bast', newBAST, false);
   };
 
   const handleDeleteBAST = (id: string) => {
@@ -127,6 +155,7 @@ export const App: React.FC = () => {
       ...prev,
       bast: prev.bast.filter(s => s.id !== id)
     }));
+    deleteRecordRemote('bast', id);
   };
 
   // Handlers for Form Permintaan
@@ -135,6 +164,7 @@ export const App: React.FC = () => {
       ...prev,
       formPermintaan: [newForm, ...prev.formPermintaan]
     }));
+    saveRecordRemote('formPermintaan', newForm, false);
   };
 
   const handleDeleteForm = (id: string) => {
@@ -142,6 +172,7 @@ export const App: React.FC = () => {
       ...prev,
       formPermintaan: prev.formPermintaan.filter(s => s.id !== id)
     }));
+    deleteRecordRemote('formPermintaan', id);
   };
 
   // Handlers for Surat PPK
@@ -150,6 +181,7 @@ export const App: React.FC = () => {
       ...prev,
       suratPPK: [newPPK, ...prev.suratPPK]
     }));
+    saveRecordRemote('suratPPK', newPPK, false);
   };
 
   const handleDeletePPK = (id: string) => {
@@ -157,6 +189,7 @@ export const App: React.FC = () => {
       ...prev,
       suratPPK: prev.suratPPK.filter(s => s.id !== id)
     }));
+    deleteRecordRemote('suratPPK', id);
   };
 
   // Handlers for Pegawai
@@ -165,6 +198,7 @@ export const App: React.FC = () => {
       ...prev,
       pegawai: [...prev.pegawai, newPegawai]
     }));
+    saveRecordRemote('pegawai', newPegawai, false);
   };
 
   const handleUpdatePegawai = (updated: Pegawai) => {
@@ -172,6 +206,7 @@ export const App: React.FC = () => {
       ...prev,
       pegawai: prev.pegawai.map(p => p.id === updated.id ? updated : p)
     }));
+    saveRecordRemote('pegawai', updated, true);
   };
 
   const handleDeletePegawai = (id: string) => {
@@ -179,6 +214,7 @@ export const App: React.FC = () => {
       ...prev,
       pegawai: prev.pegawai.filter(p => p.id !== id)
     }));
+    deleteRecordRemote('pegawai', id);
   };
 
   // Handlers for SKP
@@ -187,6 +223,7 @@ export const App: React.FC = () => {
       ...prev,
       skp: prev.skp.map(s => s.id === updated.id ? updated : s)
     }));
+    saveRecordRemote('skp', updated, true);
   };
 
   const handleResetData = () => {
@@ -196,20 +233,36 @@ export const App: React.FC = () => {
     }
   };
 
-  const handleDataSynced = (syncedData: any) => {
+  const handleDataSynced = (syncedData: Partial<GasModuleData>) => {
+    if (!syncedData || typeof syncedData !== 'object') return;
     setState(prev => ({
       ...prev,
-      suratUmum: syncedData.suratUmum || prev.suratUmum,
-      suratTugas: syncedData.suratTugas || prev.suratTugas,
-      skKegiatan: syncedData.skKegiatan || prev.skKegiatan,
-      bast: syncedData.bast || prev.bast,
-      formPermintaan: syncedData.formPermintaan || prev.formPermintaan,
-      suratPPK: syncedData.suratPPK || prev.suratPPK,
-      pegawai: syncedData.pegawai || prev.pegawai,
+      suratUmum: Array.isArray(syncedData.suratUmum) ? syncedData.suratUmum : prev.suratUmum,
+      suratTugas: Array.isArray(syncedData.suratTugas) ? syncedData.suratTugas : prev.suratTugas,
+      skKegiatan: Array.isArray(syncedData.skKegiatan) ? syncedData.skKegiatan : prev.skKegiatan,
+      bast: Array.isArray(syncedData.bast) ? syncedData.bast : prev.bast,
+      formPermintaan: Array.isArray(syncedData.formPermintaan) ? syncedData.formPermintaan : prev.formPermintaan,
+      suratPPK: Array.isArray(syncedData.suratPPK) ? syncedData.suratPPK : prev.suratPPK,
+      pegawai: Array.isArray(syncedData.pegawai) ? syncedData.pegawai : prev.pegawai,
     }));
   };
 
+  // Update handlers (edit tanpa hapus+buat ulang)
+  const makeUpdate = <T extends { id: string }>(key: 'suratUmum' | 'suratTugas' | 'skKegiatan' | 'bast' | 'formPermintaan' | 'suratPPK') =>
+    (updated: T) => {
+      setState(prev => ({ ...prev, [key]: (prev[key] as unknown as T[]).map(i => i.id === updated.id ? updated : i) }));
+      saveRecordRemote(key, updated, true);
+    };
+
+  const handleUpdateSuratUmum = makeUpdate<SuratUmum>('suratUmum');
+  const handleUpdateSuratTugas = makeUpdate<SuratTugas>('suratTugas');
+  const handleUpdateSK = makeUpdate<SKKegiatan>('skKegiatan');
+  const handleUpdateBAST = makeUpdate<BAST>('bast');
+  const handleUpdateForm = makeUpdate<FormPermintaan>('formPermintaan');
+  const handleUpdatePPK = makeUpdate<SuratPPK>('suratPPK');
+
   const handleGlobalSearch = (query: string) => {
+    setGlobalSearch(query);
     setActiveTab('surat-umum');
   };
 
@@ -223,6 +276,7 @@ export const App: React.FC = () => {
         onOpenQuickNumber={() => setIsQuickNumberOpen(true)}
         onOpenSyncModal={() => setIsSyncModalOpen(true)}
         onResetData={handleResetData}
+        dbStatus={dbStatus}
         counts={counts}
       />
 
@@ -249,7 +303,9 @@ export const App: React.FC = () => {
           <SuratUmumView
             suratList={state.suratUmum}
             onAddSurat={handleAddSuratUmum}
+            onUpdateSurat={handleUpdateSuratUmum}
             onDeleteSurat={handleDeleteSuratUmum}
+            initialSearch={globalSearch}
           />
         )}
 
@@ -258,6 +314,7 @@ export const App: React.FC = () => {
             suratTugasList={state.suratTugas}
             pegawaiList={state.pegawai}
             onAddSuratTugas={handleAddSuratTugas}
+            onUpdateSuratTugas={handleUpdateSuratTugas}
             onDeleteSuratTugas={handleDeleteSuratTugas}
           />
         )}
@@ -266,6 +323,7 @@ export const App: React.FC = () => {
           <SKKegiatanView
             skList={state.skKegiatan}
             onAddSK={handleAddSK}
+            onUpdateSK={handleUpdateSK}
             onDeleteSK={handleDeleteSK}
           />
         )}
@@ -274,6 +332,7 @@ export const App: React.FC = () => {
           <BASTView
             bastList={state.bast}
             onAddBAST={handleAddBAST}
+            onUpdateBAST={handleUpdateBAST}
             onDeleteBAST={handleDeleteBAST}
           />
         )}
@@ -282,6 +341,7 @@ export const App: React.FC = () => {
           <FormPermintaanView
             formList={state.formPermintaan}
             onAddForm={handleAddForm}
+            onUpdateForm={handleUpdateForm}
             onDeleteForm={handleDeleteForm}
           />
         )}
@@ -290,6 +350,7 @@ export const App: React.FC = () => {
           <SuratPPKView
             ppkList={state.suratPPK}
             onAddPPK={handleAddPPK}
+            onUpdatePPK={handleUpdatePPK}
             onDeletePPK={handleDeletePPK}
           />
         )}
@@ -347,6 +408,14 @@ export const App: React.FC = () => {
       <QuickNumberModal
         isOpen={isQuickNumberOpen}
         onClose={() => setIsQuickNumberOpen(false)}
+        itemsMap={{
+          suratUmum: state.suratUmum,
+          suratTugas: state.suratTugas,
+          skKegiatan: state.skKegiatan,
+          bast: state.bast,
+          formPermintaan: state.formPermintaan,
+          suratPPK: state.suratPPK
+        }}
         counts={counts}
         onNavigateToTab={(tab) => {
           setActiveTab(tab);

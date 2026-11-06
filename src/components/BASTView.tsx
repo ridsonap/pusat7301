@@ -1,4 +1,7 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
+import { newId } from '../utils/ids';
+import { copyText } from '../utils/clipboard';
+import { isValidDateString, isDuplicateNomor } from '../utils/validation';
 import { 
   FileCheck2, 
   Plus, 
@@ -8,31 +11,72 @@ import {
   Trash2, 
   X, 
   Copy, 
-  Check,
-  Printer,
-  Users
+  Check, 
+  Printer, 
+  Pencil, 
+  Users,
+  ChevronDown,
+  ChevronUp
 } from 'lucide-react';
 import { BAST } from '../types';
 import { KODE_KLASIFIKASI_BPS, PORTAL_LINKS } from '../data/seedData';
-import { generateNomorBAST, formatTanggalIndonesia, compareNomorUrutDesc, computeNextNomorUrut, getSortedKlasifikasiList } from '../utils/formatters';
+import { 
+  generateNomorBAST, 
+  formatTanggalIndonesia, 
+  compareNomorUrutDesc, 
+  computeNextNomorUrut, 
+  getSortedKlasifikasiList, 
+  parseTanggalToInputFormat,
+  getTahunFromTanggal
+} from '../utils/formatters';
 import { exportTableToCSV } from '../utils/storage';
 
 interface BASTViewProps {
   bastList: BAST[];
   onAddBAST: (bast: BAST) => void;
+  onUpdateBAST: (b: BAST) => void;
   onDeleteBAST: (id: string) => void;
 }
 
 export const BASTView: React.FC<BASTViewProps> = ({
   bastList,
   onAddBAST,
+  onUpdateBAST,
   onDeleteBAST
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterKlasifikasi, setFilterKlasifikasi] = useState<string>('Semua');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [showOptionalFields, setShowOptionalFields] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [printingBast, setPrintingBast] = useState<BAST | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const copyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (copyTimerRef.current) {
+        clearTimeout(copyTimerRef.current);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!isModalOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setIsModalOpen(false);
+        setEditingId(null);
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [isModalOpen]);
 
   const sortedKlasifikasi = useMemo(() => {
     return getSortedKlasifikasiList(bastList);
@@ -52,10 +96,18 @@ export const BASTView: React.FC<BASTViewProps> = ({
     keterangan: ''
   });
 
+  const activeTahun = getTahunFromTanggal(formData.tanggal);
+  const activeNomorUrut = editingId ? formData.nomorUrut : computeNextNomorUrut(bastList, activeTahun);
+  const activeNomorBAST = generateNomorBAST(activeNomorUrut, formData.kodeKlasifikasi, activeTahun);
+
   const handleOpenModal = () => {
+    setEditingId(null);
+    setShowOptionalFields(false);
+    const today = new Date().toISOString().slice(0, 10);
+    const yr = getTahunFromTanggal(today);
     setFormData({
-      nomorUrut: String(computeNextNomorUrut(bastList)),
-      tanggal: new Date().toISOString().slice(0, 10),
+      nomorUrut: String(computeNextNomorUrut(bastList, yr)),
+      tanggal: today,
       kodeKlasifikasi: 'VS.330',
       perihal: '',
       pihakPertama: 'Ketua Tim Teknis BPS',
@@ -65,36 +117,85 @@ export const BASTView: React.FC<BASTViewProps> = ({
     setIsModalOpen(true);
   };
 
+  const handleOpenEdit = (item: BAST) => {
+    setFormData({
+      nomorUrut: String(item.nomorUrut),
+      tanggal: parseTanggalToInputFormat(item.tanggal),
+      kodeKlasifikasi: item.kodeKlasifikasi,
+      perihal: item.perihal,
+      pihakPertama: item.pihakPertama,
+      pihakKedua: item.pihakKedua,
+      keterangan: item.keterangan ?? ''
+    });
+    setEditingId(item.id);
+    setShowOptionalFields(true);
+    setIsModalOpen(true);
+  };
+
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.perihal.trim()) {
-      alert('Harap masukkan perihal BAST.');
+    if (!formData.tanggal || !isValidDateString(formData.tanggal)) {
+      alert('Tanggal BAST tidak valid.');
       return;
     }
 
-    const tahun = new Date(formData.tanggal).getFullYear() || 2026;
-    const nomorBAST = generateNomorBAST(formData.nomorUrut, formData.kodeKlasifikasi, tahun);
+    const perihalFinal = formData.perihal.trim() || `Berita Acara Serah Terima Kegiatan BPS Tahun ${activeTahun}`;
+    const nomorBAST = activeNomorBAST;
+
+    if (isDuplicateNomor(bastList, nomorBAST, editingId ?? undefined)) {
+      alert('Nomor BAST sudah terdaftar, gunakan nomor urut atau klasifikasi lain.');
+      return;
+    }
+
+    if (editingId) {
+      const existing = bastList.find((b) => b.id === editingId);
+      onUpdateBAST({
+        ...(existing as BAST),
+        id: editingId,
+        nomorUrut: formData.nomorUrut,
+        tanggal: formatTanggalIndonesia(formData.tanggal),
+        kodeKlasifikasi: formData.kodeKlasifikasi,
+        nomorBAST: nomorBAST,
+        perihal: perihalFinal,
+        pihakPertama: formData.pihakPertama.trim() || 'Ketua Tim',
+        pihakKedua: formData.pihakKedua.trim() || 'Mitra',
+        keterangan: formData.keterangan.trim() || undefined,
+        createdAt: existing?.createdAt ?? new Date().toISOString()
+      });
+      setEditingId(null);
+      setIsModalOpen(false);
+      return;
+    }
 
     const newBast: BAST = {
-      id: `bast-${Date.now()}`,
-      nomorUrut: formData.nomorUrut,
+      id: newId('bast'),
+      nomorUrut: activeNomorUrut,
       tanggal: formatTanggalIndonesia(formData.tanggal),
       kodeKlasifikasi: formData.kodeKlasifikasi,
       nomorBAST: nomorBAST,
-      perihal: formData.perihal.trim(),
+      perihal: perihalFinal,
       pihakPertama: formData.pihakPertama.trim() || 'Ketua Tim',
       pihakKedua: formData.pihakKedua.trim() || 'Mitra',
+      keterangan: formData.keterangan.trim() || undefined,
       createdAt: new Date().toISOString()
     };
 
     onAddBAST(newBast);
+    setEditingId(null);
     setIsModalOpen(false);
   };
 
-  const copyToClipboard = (text: string, id: string) => {
-    navigator.clipboard.writeText(text);
+  const copyToClipboard = async (text: string, id: string) => {
+    const ok = await copyText(text);
+    if (!ok) {
+      alert('Gagal menyalin nomor BAST.');
+      return;
+    }
     setCopiedId(id);
-    setTimeout(() => setCopiedId(null), 2000);
+    if (copyTimerRef.current) {
+      clearTimeout(copyTimerRef.current);
+    }
+    copyTimerRef.current = setTimeout(() => setCopiedId(null), 2000);
   };
 
   const filteredList = useMemo(() => {
@@ -127,99 +228,102 @@ export const BASTView: React.FC<BASTViewProps> = ({
   };
 
   return (
-    <div className="space-y-6 pb-12">
+    <div className="space-y-4 pb-12">
       
-      {/* Header */}
-      <div className="bg-white rounded-3xl p-5 sm:p-8 border border-slate-200 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="flex items-center gap-3.5 sm:gap-4">
-          <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-emerald-50 border border-emerald-100 p-2.5 sm:p-3 flex items-center justify-center text-emerald-600 shrink-0">
-            <FileCheck2 className="w-full h-full stroke-[1.75]" />
+      {/* Header Card */}
+      <div className="bg-white rounded-xl p-4 sm:p-5 border border-slate-200 shadow-2xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-lg bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-700 shrink-0">
+            <FileCheck2 className="w-5 h-5 stroke-[1.5]" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
                 Berita Acara
               </span>
-              <span className="text-[10px] sm:text-xs font-semibold text-slate-500">BPS Kab. Kepulauan Selayar</span>
+              <span className="text-[11px] font-medium text-slate-500">BPS Kab. Kepulauan Selayar</span>
             </div>
-            <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight mt-1">
+            <h2 className="text-lg font-bold text-slate-900 tracking-tight mt-0.5">
               BAST (Berita Acara Serah Terima)
             </h2>
-            <p className="text-xs sm:text-sm text-slate-500">
-              Pengelolaan nomor dan naskah BAST pengadaan, pekerjaan survei, serta serah terima BMN.
+            <p className="text-xs text-slate-500">
+              Pengelolaan nomor dan naskah BAST pengadaan dan pekerjaan survei.
             </p>
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+        <div className="flex flex-wrap items-center gap-2">
           <a
             href={PORTAL_LINKS.bast}
             target="_blank"
             rel="noopener noreferrer"
-            className="px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs sm:text-sm font-semibold flex items-center gap-1.5 sm:gap-2 transition-colors"
+            className="px-2.5 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-medium flex items-center gap-1.5 transition-colors"
+            title="Buka Spreadsheet Asli"
           >
-            <ExternalLink className="w-4 h-4 text-slate-400" />
+            <ExternalLink className="w-3.5 h-3.5 text-slate-400" />
             <span>Sheet</span>
           </a>
 
           <button
+            type="button"
             onClick={handleExportCSV}
-            className="px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs sm:text-sm font-semibold flex items-center gap-1.5 sm:gap-2 transition-colors"
+            className="px-2.5 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-medium flex items-center gap-1.5 transition-colors"
+            title="Ekspor Data ke CSV"
           >
-            <Download className="w-4 h-4 text-slate-400" />
+            <Download className="w-3.5 h-3.5 text-slate-400" />
             <span>CSV</span>
           </button>
 
           <button
+            type="button"
             onClick={handleOpenModal}
-            className="flex-1 sm:flex-none justify-center px-4 py-2 sm:py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs sm:text-sm font-bold flex items-center gap-2 shadow-xs hover:shadow-md transition-all active:scale-95"
+            className="px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-xs"
           >
             <Plus className="w-4 h-4" />
-            <span>Buat BAST Baru</span>
+            <span>Buat BAST</span>
           </button>
         </div>
       </div>
 
-      {/* Filter and Search */}
-      <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs flex flex-col md:flex-row gap-3 items-center justify-between">
+      {/* Filter and Search Bar */}
+      <div className="bg-white rounded-xl p-3 border border-slate-200 flex flex-col md:flex-row gap-2.5 items-center justify-between">
         <div className="relative w-full md:w-80">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
           <input
             type="text"
             placeholder="Cari nomor BAST, perihal, atau pihak..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm focus:outline-hidden focus:ring-2 focus:ring-emerald-500 transition-all"
+            className="w-full pl-9 pr-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:outline-hidden focus:ring-1 focus:ring-emerald-500"
           />
         </div>
 
         <select
           value={filterKlasifikasi}
           onChange={(e) => setFilterKlasifikasi(e.target.value)}
-          className="w-full md:w-auto bg-slate-50 border border-slate-200 text-slate-700 text-xs rounded-xl px-3 py-2 font-medium focus:outline-hidden focus:ring-2 focus:ring-emerald-500"
+          className="w-full md:w-auto bg-slate-50 border border-slate-200 text-slate-700 text-xs rounded-lg px-2.5 py-1.5 font-medium focus:outline-hidden focus:ring-1 focus:ring-emerald-500"
         >
-          <option value="Semua">Semua Kode Klasifikasi (Sering Digunakan)</option>
+          <option value="Semua">Semua Klasifikasi ({sortedKlasifikasi.length})</option>
           {sortedKlasifikasi.map(k => (
             <option key={k.kode} value={k.kode}>{k.kode} - {k.kategori}</option>
           ))}
         </select>
       </div>
 
-      {/* Mobile Row View (md:hidden) */}
-      <div className="md:hidden bg-white rounded-2xl border border-slate-200 shadow-xs divide-y divide-slate-100 overflow-hidden">
+      {/* Mobile Compact View (md:hidden) */}
+      <div className="md:hidden bg-white rounded-xl border border-slate-200 divide-y divide-slate-100 overflow-hidden">
         {filteredList.length === 0 ? (
-          <div className="p-8 text-center text-slate-400 text-xs">
+          <div className="p-6 text-center text-slate-400 text-xs">
             Tidak ada data BAST yang cocok.
           </div>
         ) : (
           filteredList.map((item) => (
             <div
               key={item.id}
-              className="p-3.5 hover:bg-slate-50/70 transition-colors flex items-start justify-between gap-3"
+              className="p-3 hover:bg-slate-50/70 transition-colors flex items-start justify-between gap-2.5"
             >
-              {/* Kolom Kiri: Badge & Info BAST */}
               <div className="flex items-start gap-2.5 min-w-0 flex-1">
-                <span className="w-7 h-7 rounded-xl bg-slate-100 text-slate-800 text-[11px] font-mono font-bold flex items-center justify-center shrink-0 border border-slate-200/80 mt-0.5">
+                <span className="w-6 h-6 rounded bg-slate-100 text-slate-700 text-[11px] font-mono font-bold flex items-center justify-center shrink-0 mt-0.5">
                   {item.nomorUrut}
                 </span>
 
@@ -231,16 +335,16 @@ export const BASTView: React.FC<BASTViewProps> = ({
                     <span className="text-[10px] text-slate-400 font-medium">• {item.tanggal}</span>
                   </div>
 
-                  <p className="text-xs font-semibold text-slate-900 mt-0.5 line-clamp-2 leading-snug">
+                  <p className="text-xs text-slate-800 mt-0.5 line-clamp-2">
                     {item.perihal}
                   </p>
 
                   <div className="flex items-center gap-1.5 mt-1.5 text-[10px] text-slate-500 flex-wrap">
-                    <span className="bg-slate-100 px-2 py-0.5 rounded-md font-medium text-slate-700">
-                      Pihak: {item.pihakPertama} & {item.pihakKedua}
+                    <span className="bg-slate-100 px-1.5 py-0.5 rounded text-slate-700">
+                      {item.pihakPertama} & {item.pihakKedua}
                     </span>
                     {item.kodeKlasifikasi && (
-                      <span className="bg-emerald-50 text-emerald-700 border border-emerald-100 px-1.5 py-0.5 rounded-md font-mono font-semibold">
+                      <span className="bg-emerald-50 text-emerald-800 border border-emerald-200 px-1 py-0.5 rounded font-mono font-medium">
                         {item.kodeKlasifikasi}
                       </span>
                     )}
@@ -248,29 +352,31 @@ export const BASTView: React.FC<BASTViewProps> = ({
                 </div>
               </div>
 
-              {/* Kolom Kanan: Aksi Cepat */}
               <div className="flex items-center gap-1 shrink-0 self-center">
                 <button
+                  type="button"
                   onClick={() => setPrintingBast(item)}
-                  className="p-2 text-emerald-600 hover:text-emerald-700 bg-emerald-50 hover:bg-emerald-100 rounded-xl transition-colors border border-emerald-200"
+                  className="p-1.5 text-slate-400 hover:text-emerald-700 hover:bg-emerald-50 rounded-lg transition-colors"
                   title="Cetak Format BAST"
                 >
                   <Printer className="w-3.5 h-3.5" />
                 </button>
                 <button
-                  onClick={() => copyToClipboard(item.nomorBAST, item.id)}
-                  className="p-2 text-slate-500 hover:text-emerald-600 bg-slate-50 hover:bg-emerald-50 rounded-xl transition-colors border border-slate-200/80"
-                  title="Salin Nomor BAST"
+                  type="button"
+                  onClick={() => handleOpenEdit(item)}
+                  className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors"
+                  title="Edit"
                 >
-                  {copiedId === item.id ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+                  <Pencil className="w-3.5 h-3.5" />
                 </button>
                 <button
+                  type="button"
                   onClick={() => {
                     if (confirm(`Hapus BAST nomor ${item.nomorBAST}?`)) {
                       onDeleteBAST(item.id);
                     }
                   }}
-                  className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-colors"
+                  className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
                   title="Hapus"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
@@ -281,43 +387,44 @@ export const BASTView: React.FC<BASTViewProps> = ({
         )}
       </div>
 
-      {/* Desktop Table (hidden md:block) */}
-      <div className="hidden md:block bg-white rounded-3xl border border-slate-200 shadow-xs overflow-hidden">
+      {/* Desktop Dense Table View (md+) */}
+      <div className="hidden md:block bg-white rounded-xl border border-slate-200 overflow-hidden shadow-2xs">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs sm:text-sm">
-            <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 font-bold uppercase tracking-wider text-[11px]">
+          <table className="w-full text-left text-xs">
+            <thead className="bg-slate-50/90 border-b border-slate-200 text-slate-500 font-semibold uppercase tracking-wider text-[11px]">
               <tr>
-                <th className="py-3.5 px-4 w-14 text-center">No</th>
-                <th className="py-3.5 px-4 w-32">Tanggal</th>
-                <th className="py-3.5 px-4 w-48">Nomor BAST</th>
-                <th className="py-3.5 px-4">Perihal / Pekerjaan</th>
-                <th className="py-3.5 px-4 w-40">Pihak Pertama</th>
-                <th className="py-3.5 px-4 w-40">Pihak Kedua</th>
-                <th className="py-3.5 px-4 w-28 text-center">Aksi</th>
+                <th scope="col" className="py-2 px-2.5 w-12 text-center">No</th>
+                <th scope="col" className="py-2 px-2.5 w-28">Tanggal</th>
+                <th scope="col" className="py-2 px-2.5 w-48">Nomor BAST</th>
+                <th scope="col" className="py-2 px-2.5">Perihal / Pekerjaan</th>
+                <th scope="col" className="py-2 px-2.5 w-36">Pihak Pertama</th>
+                <th scope="col" className="py-2 px-2.5 w-36">Pihak Kedua</th>
+                <th scope="col" className="py-2 px-2.5 w-24 text-center">Aksi</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {filteredList.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="py-12 text-center text-slate-400">
+                  <td colSpan={7} className="py-8 text-center text-slate-400">
                     Tidak ada data BAST yang cocok.
                   </td>
                 </tr>
               ) : (
                 filteredList.map((item) => (
                   <tr key={item.id} className="hover:bg-slate-50/80 transition-colors">
-                    <td className="py-3 px-4 font-mono font-bold text-center text-slate-500">
+                    <td className="py-1.5 px-2.5 font-mono text-center text-slate-500 tabular-nums">
                       {item.nomorUrut}
                     </td>
-                    <td className="py-3 px-4 text-slate-600 whitespace-nowrap">
+                    <td className="py-1.5 px-2.5 text-slate-600 whitespace-nowrap tabular-nums">
                       {item.tanggal}
                     </td>
-                    <td className="py-3 px-4 font-mono font-bold text-emerald-900 whitespace-nowrap">
+                    <td className="py-1.5 px-2.5 font-mono font-bold text-emerald-950 whitespace-nowrap">
                       <div className="flex items-center gap-1.5">
-                        <span>{item.nomorBAST}</span>
+                        <span className="select-all">{item.nomorBAST}</span>
                         <button
+                          type="button"
                           onClick={() => copyToClipboard(item.nomorBAST, item.id)}
-                          className="text-slate-400 hover:text-emerald-600 p-1 rounded-md transition-colors"
+                          className="text-slate-400 hover:text-emerald-700 p-0.5 rounded transition-colors"
                           title="Salin Nomor BAST"
                         >
                           {copiedId === item.id ? (
@@ -328,39 +435,46 @@ export const BASTView: React.FC<BASTViewProps> = ({
                         </button>
                       </div>
                     </td>
-                    <td className="py-3 px-4 text-slate-800 font-medium">
-                      <div className="line-clamp-2">{item.perihal}</div>
-                      {item.kodeKlasifikasi && (
-                        <span className="text-[10px] font-mono text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded-sm mt-0.5 inline-block">
-                          Kode: {item.kodeKlasifikasi}
-                        </span>
-                      )}
+                    <td className="py-1.5 px-2.5 text-slate-700 max-w-sm">
+                      <span className="truncate block" title={item.perihal}>
+                        {item.perihal}
+                      </span>
                     </td>
-                    <td className="py-3 px-4 text-slate-700 text-xs">
+                    <td className="py-1.5 px-2.5 text-slate-600 text-xs truncate max-w-[140px]" title={item.pihakPertama}>
                       {item.pihakPertama}
                     </td>
-                    <td className="py-3 px-4 text-slate-700 text-xs">
+                    <td className="py-1.5 px-2.5 text-slate-600 text-xs truncate max-w-[140px]" title={item.pihakKedua}>
                       {item.pihakKedua}
                     </td>
-                    <td className="py-3 px-4 text-center">
+                    <td className="py-1.5 px-2.5 text-center">
                       <div className="flex items-center justify-center gap-1">
                         <button
-                          onClick={() => setPrintingBast(item)}
-                          className="text-emerald-600 hover:bg-emerald-50 p-1.5 rounded-lg transition-colors"
-                          title="Pratinjau / Cetak BAST"
+                          type="button"
+                          onClick={() => handleOpenEdit(item)}
+                          className="text-slate-400 hover:text-slate-700 p-1 rounded hover:bg-slate-100 transition-colors"
+                          title="Edit BAST"
                         >
-                          <Printer className="w-4 h-4" />
+                          <Pencil className="w-3.5 h-3.5" />
                         </button>
                         <button
+                          type="button"
+                          onClick={() => setPrintingBast(item)}
+                          className="text-slate-400 hover:text-emerald-700 p-1 rounded hover:bg-emerald-50 transition-colors"
+                          title="Pratinjau / Cetak BAST"
+                        >
+                          <Printer className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          type="button"
                           onClick={() => {
                             if (confirm(`Hapus BAST nomor ${item.nomorBAST}?`)) {
                               onDeleteBAST(item.id);
                             }
                           }}
-                          className="text-slate-400 hover:text-rose-600 p-1.5 rounded-lg hover:bg-rose-50 transition-colors"
+                          className="text-slate-400 hover:text-rose-600 p-1 rounded hover:bg-rose-50 transition-colors"
                           title="Hapus"
                         >
-                          <Trash2 className="w-4 h-4" />
+                          <Trash2 className="w-3.5 h-3.5" />
                         </button>
                       </div>
                     </td>
@@ -371,78 +485,85 @@ export const BASTView: React.FC<BASTViewProps> = ({
           </table>
         </div>
 
-        <div className="py-3 px-6 bg-slate-50 border-t border-slate-200 text-xs text-slate-500 flex justify-between items-center">
-          <span>Menampilkan {filteredList.length} dari {bastList.length} total BAST</span>
-          <span className="font-semibold text-slate-700">BPS 7301</span>
+        <div className="py-2 px-3 bg-slate-50 border-t border-slate-200 text-xs text-slate-500 flex justify-between items-center">
+          <span>Menampilkan {filteredList.length} dari {bastList.length} BAST</span>
+          <span className="font-mono text-slate-600">BPS 7301</span>
         </div>
       </div>
 
-      {/* Modal Buat BAST Baru */}
+      {/* Modal: Input Tanggal & Kategori Saja */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-fadeIn">
-          <div className="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl border border-slate-200">
-            <div className="flex items-center justify-between pb-4 mb-4 border-b border-slate-100">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600">
-                  <FileCheck2 className="w-5 h-5" />
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-2xs"
+          onClick={() => { setIsModalOpen(false); setEditingId(null); }}
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label={editingId ? 'Edit BAST' : 'Buat BAST Baru'}
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white rounded-xl max-w-md w-full p-5 shadow-xl border border-slate-200 max-h-[90vh] overflow-y-auto"
+          >
+            <div className="flex items-center justify-between pb-3 mb-3 border-b border-slate-100">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-700">
+                  <FileCheck2 className="w-4 h-4 stroke-[1.5]" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-black text-slate-900">Buat BAST Baru</h3>
-                  <p className="text-xs text-slate-500">Berita Acara Serah Terima Pekerjaan / Pengadaan</p>
+                  <h3 className="text-sm font-bold text-slate-900">{editingId ? 'Edit BAST' : 'Buat BAST Baru'}</h3>
+                  <p className="text-[11px] text-slate-500">Pilih tanggal dan kode klasifikasi untuk nomor otomatis</p>
                 </div>
               </div>
               <button
-                onClick={() => setIsModalOpen(false)}
-                className="text-slate-400 hover:text-slate-600 p-2 rounded-xl hover:bg-slate-100"
+                type="button"
+                onClick={() => { setIsModalOpen(false); setEditingId(null); }}
+                className="text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-100"
               >
-                <X className="w-5 h-5" />
+                <X className="w-4 h-4" />
               </button>
             </div>
 
-            <form onSubmit={handleFormSubmit} className="space-y-4">
+            <form onSubmit={handleFormSubmit} className="space-y-3.5">
               
-              <div className="bg-emerald-50/80 border border-emerald-200 p-4 rounded-2xl">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-800">
-                  Format Nomor BAST Diterbitkan
-                </span>
-                <div className="text-base sm:text-lg font-mono font-black text-emerald-950 mt-0.5">
-                  {generateNomorBAST(formData.nomorUrut, formData.kodeKlasifikasi, new Date(formData.tanggal).getFullYear() || 2026)}
+              {/* Preview Auto-generated Nomor BAST */}
+              <div className="bg-slate-50 border border-slate-200 p-3 rounded-lg">
+                <div className="flex items-center justify-between mb-1 text-[11px]">
+                  <span className="text-slate-500 font-medium">Nomor BAST Otomatis</span>
+                  <span className="font-mono text-emerald-800 font-semibold">
+                    #{activeNomorUrut} • Tahun {activeTahun}
+                  </span>
+                </div>
+                <div className="text-base font-mono font-bold text-slate-900 tracking-tight">
+                  {activeNomorBAST}
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
-                    Nomor Urut <span className="text-[10px] text-slate-400 font-normal">(bisa 20.1)</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.nomorUrut}
-                    onChange={(e) => setFormData({ ...formData, nomorUrut: e.target.value })}
-                    placeholder="Contoh: 10 atau 10.1"
-                    className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm font-mono focus:ring-2 focus:ring-emerald-500 focus:outline-hidden"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Tanggal BAST</label>
-                  <input
-                    type="date"
-                    value={formData.tanggal}
-                    onChange={(e) => setFormData({ ...formData, tanggal: e.target.value })}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-hidden"
-                    required
-                  />
-                </div>
-              </div>
-
+              {/* 1. INPUT TANGGAL */}
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Kode Klasifikasi</label>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  Tanggal BAST <span className="text-rose-500">*</span>
+                </label>
+                <input
+                  type="date"
+                  value={formData.tanggal}
+                  onChange={(e) => setFormData({ ...formData, tanggal: e.target.value })}
+                  className="w-full px-3 py-1.5 border border-slate-200 rounded-lg text-xs font-medium bg-white focus:outline-hidden focus:ring-1 focus:ring-emerald-500"
+                  required
+                />
+                <p className="text-[10px] text-slate-400 mt-0.5">
+                  Nomor urut otomatis dimulai dari 1 saat tahun berganti.
+                </p>
+              </div>
+
+              {/* 2. INPUT KATEGORI (Kode Klasifikasi) */}
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  Kode Klasifikasi <span className="text-rose-500">*</span>
+                </label>
                 <select
                   value={formData.kodeKlasifikasi}
                   onChange={(e) => setFormData({ ...formData, kodeKlasifikasi: e.target.value })}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-hidden"
+                  className="w-full px-2.5 py-1.5 border border-slate-200 rounded-lg text-xs font-medium focus:outline-hidden focus:ring-1 focus:ring-emerald-500"
                 >
                   {sortedKlasifikasi.map((k) => (
                     <option key={k.kode} value={k.kode}>
@@ -452,55 +573,84 @@ export const BASTView: React.FC<BASTViewProps> = ({
                 </select>
               </div>
 
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
-                  Perihal / Kegiatan Serah Terima <span className="text-rose-500">*</span>
-                </label>
-                <textarea
-                  rows={2}
-                  placeholder="Contoh: BAST Hasil Pendataan Survei Industri Mikro dan Kecil (IMK) Triwulan I 2026"
-                  value={formData.perihal}
-                  onChange={(e) => setFormData({ ...formData, perihal: e.target.value })}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-hidden"
-                  required
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Pihak Pertama</label>
-                  <input
-                    type="text"
-                    value={formData.pihakPertama}
-                    onChange={(e) => setFormData({ ...formData, pihakPertama: e.target.value })}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs sm:text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-hidden"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Pihak Kedua</label>
-                  <input
-                    type="text"
-                    value={formData.pihakKedua}
-                    onChange={(e) => setFormData({ ...formData, pihakKedua: e.target.value })}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs sm:text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-hidden"
-                  />
-                </div>
-              </div>
-
-              <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
+              {/* Accordion Rincian Tambahan (Opsional) */}
+              <div className="pt-1">
                 <button
                   type="button"
-                  onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-100 text-xs sm:text-sm font-semibold transition-colors"
+                  onClick={() => setShowOptionalFields(!showOptionalFields)}
+                  className="w-full flex items-center justify-between text-xs text-slate-600 hover:text-slate-900 py-1 border-t border-slate-100"
+                >
+                  <span className="font-medium">Rincian Tambahan & Pihak (Opsional)</span>
+                  {showOptionalFields ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                </button>
+
+                {showOptionalFields && (
+                  <div className="space-y-3 pt-2 text-xs">
+                    <div>
+                      <label className="block font-medium text-slate-700 mb-1">
+                        Perihal / Kegiatan Serah Terima
+                      </label>
+                      <textarea
+                        rows={2}
+                        placeholder={`Default: Berita Acara Serah Terima Kegiatan BPS Tahun ${activeTahun}`}
+                        value={formData.perihal}
+                        onChange={(e) => setFormData({ ...formData, perihal: e.target.value })}
+                        className="w-full px-3 py-1.5 border border-slate-200 rounded-lg text-xs focus:outline-hidden focus:ring-1 focus:ring-emerald-500"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2.5">
+                      <div>
+                        <label className="block font-medium text-slate-700 mb-1">Pihak Pertama</label>
+                        <input
+                          type="text"
+                          value={formData.pihakPertama}
+                          onChange={(e) => setFormData({ ...formData, pihakPertama: e.target.value })}
+                          className="w-full px-2.5 py-1.5 border border-slate-200 rounded-lg text-xs focus:outline-hidden focus:ring-1 focus:ring-emerald-500"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block font-medium text-slate-700 mb-1">Pihak Kedua</label>
+                        <input
+                          type="text"
+                          value={formData.pihakKedua}
+                          onChange={(e) => setFormData({ ...formData, pihakKedua: e.target.value })}
+                          className="w-full px-2.5 py-1.5 border border-slate-200 rounded-lg text-xs focus:outline-hidden focus:ring-1 focus:ring-emerald-500"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block font-medium text-slate-700 mb-1">
+                        Keterangan
+                      </label>
+                      <textarea
+                        rows={2}
+                        placeholder="Catatan tambahan..."
+                        value={formData.keterangan}
+                        onChange={(e) => setFormData({ ...formData, keterangan: e.target.value })}
+                        className="w-full px-3 py-1.5 border border-slate-200 rounded-lg text-xs focus:outline-hidden focus:ring-1 focus:ring-emerald-500"
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => { setIsModalOpen(false); setEditingId(null); }}
+                  className="px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 text-xs font-medium transition-colors"
                 >
                   Batal
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs sm:text-sm font-bold shadow-md transition-all active:scale-95"
+                  className="px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shadow-xs transition-colors"
                 >
-                  Simpan BAST
+                  {editingId ? 'Simpan Perubahan' : 'Buat BAST'}
                 </button>
               </div>
 
@@ -517,14 +667,14 @@ export const BASTView: React.FC<BASTViewProps> = ({
               Format Cetak BAST: {printingBast.nomorBAST}
             </span>
             <div className="flex items-center gap-2">
-              <button
+              <button type="button"
                 onClick={() => window.print()}
                 className="px-4 py-2 bg-emerald-600 text-white rounded-xl text-xs font-bold flex items-center gap-1.5"
               >
                 <Printer className="w-4 h-4" />
                 <span>Cetak BAST</span>
               </button>
-              <button
+              <button type="button"
                 onClick={() => setPrintingBast(null)}
                 className="p-2 text-slate-400 hover:text-slate-700 rounded-xl"
               >

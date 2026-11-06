@@ -132,7 +132,7 @@ export const DokumentasiView: React.FC = () => {
 
         <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl text-[11px] sm:text-xs font-semibold overflow-x-auto w-full md:w-auto max-w-full">
           {['Semua', 'Pelatihan', 'Supervisi Lapangan', 'Rapat & Evaluasi', 'Survei Lapangan', 'BMN & Perlengkapan', 'Diseminasi'].map(k => (
-            <button
+            <button type="button"
               key={k}
               onClick={() => setSelectedKategori(k)}
               className={`px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-lg transition-all shrink-0 whitespace-nowrap ${

@@ -10,6 +10,7 @@ import {
 import { SKPItem, Pegawai } from '../types';
 import { PORTAL_LINKS, getSkpDriveUploadUrl } from '../data/seedData';
 import { exportTableToCSV } from '../utils/storage';
+import { isValidHttpUrl } from '../utils/validation';
 
 interface SKPBulananViewProps {
   skpList: SKPItem[];
@@ -19,7 +20,9 @@ interface SKPBulananViewProps {
 
 export const SKPBulananView: React.FC<SKPBulananViewProps> = ({
   skpList,
+  onUpdateSKP: _onUpdateSKP,
 }) => {
+  void _onUpdateSKP;
   const [searchTerm, setSearchTerm] = useState('');
   const [activeTriwulan, setActiveTriwulan] = useState<'triwulan1' | 'triwulan2' | 'triwulan3' | 'triwulan4' | 'tahunan'>('triwulan1');
 
@@ -93,7 +96,7 @@ export const SKPBulananView: React.FC<SKPBulananViewProps> = ({
             <span>Sheet SKP</span>
           </a>
 
-          <button
+          <button type="button"
             onClick={handleExportCSV}
             className="flex-1 sm:flex-none justify-center px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs sm:text-sm font-semibold flex items-center gap-1.5 sm:gap-2 transition-colors"
           >
@@ -109,7 +112,7 @@ export const SKPBulananView: React.FC<SKPBulananViewProps> = ({
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
           <input
             type="text"
-            placeholder="Cari nama pegawai atau jabatan..."
+            placeholder="Cari nama pegawai atau jabatan..." aria-label="Cari pegawai"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm focus:outline-hidden focus:ring-2 focus:ring-rose-500 transition-all"
@@ -119,7 +122,7 @@ export const SKPBulananView: React.FC<SKPBulananViewProps> = ({
         {/* Tab Buttons for Triwulan */}
         <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl text-[11px] sm:text-xs font-semibold overflow-x-auto w-full md:w-auto max-w-full">
           {(['triwulan1', 'triwulan2', 'triwulan3', 'triwulan4', 'tahunan'] as const).map((tw) => (
-            <button
+            <button type="button"
               key={tw}
               onClick={() => setActiveTriwulan(tw)}
               className={`px-3 py-1.5 rounded-lg transition-all shrink-0 whitespace-nowrap ${
@@ -187,7 +190,7 @@ export const SKPBulananView: React.FC<SKPBulananViewProps> = ({
                 {/* Card Action: Upload SKP Drive */}
                 <div className="pt-2 border-t border-slate-100">
                   <a
-                    href={driveUrl}
+                    href={isValidHttpUrl(driveUrl) ? driveUrl : PORTAL_LINKS.skpDriveUploadSpreadsheet}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="w-full py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-colors border border-emerald-200"
@@ -209,12 +212,12 @@ export const SKPBulananView: React.FC<SKPBulananViewProps> = ({
           <table className="w-full text-left text-xs sm:text-sm">
             <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 font-bold uppercase tracking-wider text-[11px]">
               <tr>
-                <th className="py-3.5 px-4 w-14 text-center">No</th>
-                <th className="py-3.5 px-4">Nama Pegawai</th>
-                <th className="py-3.5 px-4">Jabatan</th>
-                <th className="py-3.5 px-4 w-48">Hasil Kerja ({triwulanLabels[activeTriwulan]})</th>
-                <th className="py-3.5 px-4 w-48">Perilaku Kerja</th>
-                <th className="py-3.5 px-4 w-48 text-center">Upload SKP (Google Drive)</th>
+                <th scope="col" className="py-3.5 px-4 w-14 text-center">No</th>
+                <th scope="col" className="py-3.5 px-4">Nama Pegawai</th>
+                <th scope="col" className="py-3.5 px-4">Jabatan</th>
+                <th scope="col" className="py-3.5 px-4 w-48">Hasil Kerja ({triwulanLabels[activeTriwulan]})</th>
+                <th scope="col" className="py-3.5 px-4 w-48">Perilaku Kerja</th>
+                <th scope="col" className="py-3.5 px-4 w-48 text-center">Upload SKP (Google Drive)</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -244,7 +247,7 @@ export const SKPBulananView: React.FC<SKPBulananViewProps> = ({
                     </td>
                     <td className="py-3 px-4 text-center">
                       <a
-                        href={driveUrl}
+                        href={isValidHttpUrl(driveUrl) ? driveUrl : PORTAL_LINKS.skpDriveUploadSpreadsheet}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 rounded-xl font-bold text-xs transition-colors shadow-2xs"

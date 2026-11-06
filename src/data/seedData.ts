@@ -824,8 +824,8 @@ export const INITIAL_SURAT_UMUM: SuratUmum[] = [
     "tanggal": "9 Januari 2026",
     "jenisSurat": "Eksternal",
     "tujuan": "KPPN Benteng",
-    "kodeKlasifikasi": "Ku.230",
-    "nomorSurat": "B-33/7301/Ku.230/2026",
+    "kodeKlasifikasi": "KU.230",
+    "nomorSurat": "B-33/7301/KU.230/2026",
     "perihal": "SURAT PERNYATAAN UANG PERSEDIAAN"
   },
   {
@@ -954,8 +954,8 @@ export const INITIAL_SURAT_UMUM: SuratUmum[] = [
     "tanggal": "19 Januari 2026",
     "jenisSurat": "Eksternal",
     "tujuan": "BRI Cabang",
-    "kodeKlasifikasi": "Ku.230",
-    "nomorSurat": "B-44/7301/Ku.230/2026",
+    "kodeKlasifikasi": "KU.230",
+    "nomorSurat": "B-44/7301/KU.230/2026",
     "perihal": "Permohonan Pembukaan Blokir"
   },
   {
@@ -1084,8 +1084,8 @@ export const INITIAL_SURAT_UMUM: SuratUmum[] = [
     "tanggal": "27 Januari 2026",
     "jenisSurat": "Eksternal",
     "tujuan": "Kantor Wilayah DJPb Sulawesi Selatan",
-    "kodeKlasifikasi": "PR-440",
-    "nomorSurat": "B-51/7301/PR-440/2026",
+    "kodeKlasifikasi": "PR.440",
+    "nomorSurat": "B-51/7301/PR.440/2026",
     "perihal": "Permohonan Usulan Revisi DIPA Mekanisme Pemuktahiran KPA Tahun Anggaran 2026"
   },
   {
@@ -1159,13 +1159,13 @@ export const INITIAL_SURAT_UMUM: SuratUmum[] = [
     "perihal": "Mekanisme Pemerian Reward Kinerja Pegawai 2026"
   },
   {
-    "id": "su-58",
-    "nomorUrut": 58,
+    "id": "su-58-1",
+    "nomorUrut": "58.1",
     "tanggal": "2 Februari 2026",
     "jenisSurat": "Eksternal",
     "tujuan": "Kantor Wilayah DJPb Sulawesi Selatan",
-    "kodeKlasifikasi": "PR-440",
-    "nomorSurat": "B-58/7301/PR-440/2026",
+    "kodeKlasifikasi": "PR.440",
+    "nomorSurat": "B-58.1/7301/PR.440/2026",
     "perihal": "Permohonan Usulan Revisi Halaman III DIPA Triuwlan I Tahun Anggaran 2026"
   },
   {
@@ -1174,8 +1174,8 @@ export const INITIAL_SURAT_UMUM: SuratUmum[] = [
     "tanggal": "2 Februari 2026",
     "jenisSurat": "Eksternal",
     "tujuan": "Kantor Wilayah DJPb Sulawesi Selatan",
-    "kodeKlasifikasi": "PR-440",
-    "nomorSurat": "B-59/7301/PR-440/2026",
+    "kodeKlasifikasi": "PR.440",
+    "nomorSurat": "B-59/7301/PR.440/2026",
     "perihal": "SPTJM Revisi Halaman III DIPA Triwulan I Tahun 2026"
   },
   {
@@ -1454,8 +1454,8 @@ export const INITIAL_SURAT_UMUM: SuratUmum[] = [
     "tanggal": "26 Februari 2026",
     "jenisSurat": "Eksternal",
     "tujuan": "BPS Provinsi Sulawesi Selatan",
-    "kodeKlasifikasi": "VS,110",
-    "nomorSurat": "B-83.1/7301/VS,110/2026",
+    "kodeKlasifikasi": "VS.110",
+    "nomorSurat": "B-83.1/7301/VS.110/2026",
     "perihal": "Surat Permohonan Penawaran Kerja Mitra Statistik SNLIK 2026"
   },
   {
@@ -2064,8 +2064,8 @@ export const INITIAL_SURAT_UMUM: SuratUmum[] = [
     "tanggal": "7 April 2026",
     "jenisSurat": "Eksternal",
     "tujuan": "Kantor Wilayah DJPb Sulawesi Selatan",
-    "kodeKlasifikasi": "PR-440",
-    "nomorSurat": "B-141/7301/PR-440/2026",
+    "kodeKlasifikasi": "PR.440",
+    "nomorSurat": "B-141/7301/PR.440/2026",
     "perihal": "Permohonan Usulan Revisi Halaman III DIPA Triuwlan II Tahun Anggaran 2026"
   },
   {
@@ -2074,8 +2074,8 @@ export const INITIAL_SURAT_UMUM: SuratUmum[] = [
     "tanggal": "7 April 2026",
     "jenisSurat": "Eksternal",
     "tujuan": "Kantor Wilayah DJPb Sulawesi Selatan",
-    "kodeKlasifikasi": "PR-440",
-    "nomorSurat": "B-142/7301/PR-440/2026",
+    "kodeKlasifikasi": "PR.440",
+    "nomorSurat": "B-142/7301/PR.440/2026",
     "perihal": "SPTJM Revisi Halaman III DIPA Triwulan II Tahun 2026"
   },
   {
@@ -3504,7 +3504,7 @@ export const INITIAL_SURAT_UMUM: SuratUmum[] = [
     "tanggal": "7 Juli 2026",
     "jenisSurat": "Eksternal",
     "tujuan": "Kantor Wilayah DJPb Sulawesi Selatan",
-    "kodeKlasifikasi": "PR-440",
+    "kodeKlasifikasi": "PR.440",
     "nomorSurat": "B-270/7301/PR-440/2026",
     "perihal": "Permohonan Usulan Revisi Halaman III DIPA Triuwlan III Tahun Anggaran 2026"
   },
@@ -3514,7 +3514,7 @@ export const INITIAL_SURAT_UMUM: SuratUmum[] = [
     "tanggal": "7 Juli 2026",
     "jenisSurat": "Eksternal",
     "tujuan": "Kantor Wilayah DJPb Sulawesi Selatan",
-    "kodeKlasifikasi": "PR-440",
+    "kodeKlasifikasi": "PR.440",
     "nomorSurat": "B-271/7301/PR-440/2026",
     "perihal": "SPTJM Revisi Halaman III DIPA Triwulan III Tahun 2026"
   },

@@ -42,14 +42,14 @@ export const OfficialPrintSuratTugas: React.FC<OfficialPrintSuratTugasProps> = (
         </div>
 
         <div className="flex items-center gap-3">
-          <button
+          <button type="button"
             onClick={handlePrint}
             className="px-4 py-2 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2 shadow-md active:scale-95 transition-all"
           >
             <Printer className="w-4 h-4" />
             <span>Cetak / Simpan PDF</span>
           </button>
-          <button
+          <button type="button"
             onClick={onClose}
             className="p-2 text-slate-400 hover:text-slate-700 rounded-xl hover:bg-slate-100 transition-colors"
           >
@@ -104,11 +104,11 @@ export const OfficialPrintSuratTugas: React.FC<OfficialPrintSuratTugasProps> = (
           <table className="w-full text-xs text-left border-collapse border border-slate-800 font-sans">
             <thead>
               <tr className="bg-slate-100 text-center font-bold">
-                <th className="border border-slate-800 p-2 w-10">No</th>
-                <th className="border border-slate-800 p-2">Nama Pegawai</th>
-                <th className="border border-slate-800 p-2 w-36">NIP</th>
-                <th className="border border-slate-800 p-2 w-28">Pangkat / Gol.</th>
-                <th className="border border-slate-800 p-2">Jabatan</th>
+                <th scope="col" className="border border-slate-800 p-2 w-10">No</th>
+                <th scope="col" className="border border-slate-800 p-2">Nama Pegawai</th>
+                <th scope="col" className="border border-slate-800 p-2 w-36">NIP</th>
+                <th scope="col" className="border border-slate-800 p-2 w-28">Pangkat / Gol.</th>
+                <th scope="col" className="border border-slate-800 p-2">Jabatan</th>
               </tr>
             </thead>
             <tbody>
@@ -153,7 +153,7 @@ export const OfficialPrintSuratTugas: React.FC<OfficialPrintSuratTugasProps> = (
           </div>
           <div className="flex items-start gap-4">
             <span className="font-bold w-32 flex-shrink-0">Pembebanan Anggaran</span>
-            <span>: DIPA Badan Pusat Statistik Kabupaten Kepulauan Selayar Tahun Anggaran 2026</span>
+            <span>: DIPA Badan Pusat Statistik Kabupaten Kepulauan Selayar Tahun Anggaran {new Date().getFullYear()}</span>
           </div>
         </div>
 

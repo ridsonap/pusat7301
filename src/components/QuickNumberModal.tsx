@@ -1,19 +1,30 @@
-import React, { useState } from 'react';
-import { Hash, X, Copy, Check, Sparkles, ArrowRight, ShieldCheck } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { copyText } from '../utils/clipboard';
+import { Hash, X, Copy, Check, ArrowRight } from 'lucide-react';
 import { KODE_KLASIFIKASI_BPS } from '../data/seedData';
-import { 
-  generateNomorSuratUmum, 
-  generateNomorSuratTugas, 
-  generateNomorSK, 
-  generateNomorBAST, 
-  generateNomorFormPermintaan, 
-  generateNomorSuratPPK 
+import {
+  generateNomorSuratUmum,
+  generateNomorSuratTugas,
+  generateNomorSK,
+  generateNomorBAST,
+  generateNomorFormPermintaan,
+  generateNomorSuratPPK,
+  computeNextNomorUrut,
+  getTahunFromTanggal
 } from '../utils/formatters';
 import { ActiveTab } from '../types';
 
 interface QuickNumberModalProps {
   isOpen: boolean;
   onClose: () => void;
+  itemsMap?: {
+    suratUmum: any[];
+    suratTugas: any[];
+    skKegiatan: any[];
+    bast: any[];
+    formPermintaan: any[];
+    suratPPK: any[];
+  };
   counts: {
     suratUmum: number;
     suratTugas: number;
@@ -28,27 +39,44 @@ interface QuickNumberModalProps {
 export const QuickNumberModal: React.FC<QuickNumberModalProps> = ({
   isOpen,
   onClose,
+  itemsMap,
   counts,
   onNavigateToTab
 }) => {
+  const [kategori, setKategori] = useState<'suratUmum' | 'suratTugas' | 'skKegiatan' | 'bast' | 'formPermintaan' | 'suratPPK'>('suratUmum');
+  const [tanggal, setTanggal] = useState(() => new Date().toISOString().slice(0, 10));
+  const [kodeKlasifikasi, setKodeKlasifikasi] = useState('VS.330');
+  const [copied, setCopied] = useState(false);
+  const closeRef = useRef<HTMLButtonElement>(null);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    setTanggal(new Date().toISOString().slice(0, 10));
+    closeRef.current?.focus();
+    document.body.style.overflow = 'hidden';
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => {
+      document.body.style.overflow = '';
+      window.removeEventListener('keydown', onKey);
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
-  const [kategori, setKategori] = useState<'suratUmum' | 'suratTugas' | 'skKegiatan' | 'bast' | 'formPermintaan' | 'suratPPK'>('suratUmum');
-  const [kodeKlasifikasi, setKodeKlasifikasi] = useState('VS.330');
-  const [customNomor, setCustomNomor] = useState('');
-  const [copied, setCopied] = useState(false);
+  const tahun = getTahunFromTanggal(tanggal);
 
-  const tahun = new Date().getFullYear();
-
-  // Compute default next number
-  let defaultCount = counts.suratUmum;
-  if (kategori === 'suratTugas') defaultCount = counts.suratTugas;
-  if (kategori === 'skKegiatan') defaultCount = counts.skKegiatan;
-  if (kategori === 'bast') defaultCount = counts.bast;
-  if (kategori === 'formPermintaan') defaultCount = counts.formPermintaan;
-  if (kategori === 'suratPPK') defaultCount = counts.suratPPK;
-
-  const activeNomor = customNomor.trim() ? customNomor.trim() : defaultCount + 1;
+  // Hitung nomor urut berikutnya secara dinamis berdasarkan tahun yang dipilih
+  let activeNomor = 1;
+  if (itemsMap && itemsMap[kategori]) {
+    activeNomor = computeNextNomorUrut(itemsMap[kategori], tahun);
+  } else {
+    activeNomor = (counts[kategori] || 0) + 1;
+  }
 
   let nextNumber = '';
   let targetTab: ActiveTab = 'surat-umum';
@@ -69,14 +97,16 @@ export const QuickNumberModal: React.FC<QuickNumberModalProps> = ({
     nextNumber = generateNomorFormPermintaan(activeNomor, tahun);
     targetTab = 'form-permintaan';
   } else if (kategori === 'suratPPK') {
-    nextNumber = generateNomorSuratPPK(activeNomor, 'PL.300', tahun);
+    nextNumber = generateNomorSuratPPK(activeNomor, kodeKlasifikasi || 'PL.300', tahun);
     targetTab = 'surat-ppk';
   }
 
-  const handleCopy = () => {
-    navigator.clipboard.writeText(nextNumber);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2500);
+  const handleCopy = async () => {
+    const ok = await copyText(nextNumber);
+    setCopied(ok);
+    if (timerRef.current) clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(() => setCopied(false), 2500);
+    if (!ok) alert('Gagal menyalin. Salin manual: ' + nextNumber);
   };
 
   const handleGoToModule = () => {
@@ -85,35 +115,47 @@ export const QuickNumberModal: React.FC<QuickNumberModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs animate-fadeIn">
-      <div className="bg-white rounded-3xl max-w-lg w-full p-5 sm:p-8 shadow-2xl border border-slate-200 max-h-[90vh] overflow-y-auto">
-        
-        <div className="flex items-center justify-between pb-3 sm:pb-4 mb-3 sm:mb-4 border-b border-slate-100">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-sky-50 border border-sky-100 flex items-center justify-center text-sky-600 shrink-0">
-              <Hash className="w-5 h-5" />
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/40 backdrop-blur-2xs"
+      onClick={onClose}
+    >
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-label="Ambil Nomor Surat Cepat"
+        className="bg-white rounded-xl max-w-md w-full p-5 shadow-xl border border-slate-200 max-h-[90vh] overflow-y-auto"
+        onClick={(e) => e.stopPropagation()}
+      >
+
+        <div className="flex items-center justify-between pb-3 mb-3 border-b border-slate-100">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-sky-50 border border-sky-100 flex items-center justify-center text-sky-700 shrink-0">
+              <Hash className="w-4 h-4" aria-hidden="true" />
             </div>
             <div>
-              <h3 className="text-base sm:text-lg font-black text-slate-900">Ambil Nomor Surat Instan</h3>
-              <p className="text-[11px] sm:text-xs text-slate-500">Generator nomor urut resmi BPS 7301 Tahun {tahun}</p>
+              <h3 className="text-sm font-bold text-slate-900">Ambil Nomor Surat Cepat</h3>
+              <p className="text-[11px] text-slate-500">Nomor resmi BPS 7301 Tahun {tahun}</p>
             </div>
           </div>
           <button
+            type="button"
+            ref={closeRef}
             onClick={onClose}
-            className="text-slate-400 hover:text-slate-600 p-2 rounded-xl hover:bg-slate-100"
+            aria-label="Tutup"
+            className="text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-100"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4" aria-hidden="true" />
           </button>
         </div>
 
-        <div className="space-y-4">
-          
+        <div className="space-y-3.5">
+
           {/* Pilih Kategori Surat */}
           <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1.5">
+            <label className="block text-xs font-semibold text-slate-700 mb-1.5">
               Pilih Jenis Naskah Dinas
             </label>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs font-semibold">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5 text-xs">
               {[
                 { id: 'suratUmum', label: 'Surat Umum' },
                 { id: 'suratTugas', label: 'Surat Tugas' },
@@ -123,11 +165,12 @@ export const QuickNumberModal: React.FC<QuickNumberModalProps> = ({
                 { id: 'suratPPK', label: 'Surat PPK' },
               ].map((item) => (
                 <button
+                  type="button"
                   key={item.id}
                   onClick={() => setKategori(item.id as typeof kategori)}
-                  className={`p-2 sm:p-2.5 rounded-xl border text-center text-xs transition-all ${
+                  className={`p-2 rounded-lg border text-center text-xs transition-colors ${
                     kategori === item.id
-                      ? 'bg-sky-600 text-white border-sky-600 shadow-xs font-bold'
+                      ? 'bg-sky-600 text-white border-sky-600 font-semibold shadow-2xs'
                       : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
                   }`}
                 >
@@ -137,30 +180,45 @@ export const QuickNumberModal: React.FC<QuickNumberModalProps> = ({
             </div>
           </div>
 
-          {/* Nomor Urut (Auto / Sisip) */}
-          <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1">
-              Nomor Urut <span className="text-[10px] text-slate-400 font-normal">(bisa diisi manual / disisip misal 20.1)</span>
-            </label>
-            <input
-              type="text"
-              placeholder={`Otomatis nomor berikutnya: ${defaultCount + 1}`}
-              value={customNomor}
-              onChange={(e) => setCustomNomor(e.target.value)}
-              className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs sm:text-sm font-mono focus:ring-2 focus:ring-sky-500 focus:outline-hidden"
-            />
+          {/* Tanggal & Penentuan Nomor oleh Sistem */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            <div>
+              <label htmlFor="qn-tanggal" className="block text-xs font-semibold text-slate-700 mb-1">
+                Tanggal Surat
+              </label>
+              <input
+                id="qn-tanggal"
+                type="date"
+                value={tanggal}
+                onChange={(e) => setTanggal(e.target.value)}
+                className="w-full px-2.5 py-1.5 border border-slate-200 rounded-lg text-xs font-medium focus:outline-hidden focus:ring-1 focus:ring-sky-500 bg-white"
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 mb-1">
+                Nomor Urut Sistem
+              </label>
+              <div className="flex items-center justify-between px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-mono text-slate-700">
+                <span className="font-bold text-sky-700">#{activeNomor}</span>
+                <span className="text-[10px] text-slate-500 font-sans">
+                  Tahun {tahun}
+                </span>
+              </div>
+            </div>
           </div>
 
           {/* Klasifikasi (if applicable) */}
           {kategori !== 'skKegiatan' && kategori !== 'formPermintaan' && (
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">
+              <label htmlFor="qn-klas" className="block text-xs font-semibold text-slate-700 mb-1">
                 Kode Klasifikasi Arsip
               </label>
               <select
+                id="qn-klas"
                 value={kodeKlasifikasi}
                 onChange={(e) => setKodeKlasifikasi(e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs sm:text-sm font-medium focus:ring-2 focus:ring-sky-500 focus:outline-hidden"
+                className="w-full px-2.5 py-1.5 border border-slate-200 rounded-lg text-xs font-medium focus:outline-hidden focus:ring-1 focus:ring-sky-500"
               >
                 {KODE_KLASIFIKASI_BPS.map((k) => (
                   <option key={k.kode} value={k.kode}>
@@ -172,51 +230,55 @@ export const QuickNumberModal: React.FC<QuickNumberModalProps> = ({
           )}
 
           {/* Generated Number Box */}
-          <div className="bg-gradient-to-br from-sky-50 via-blue-50 to-indigo-50 border-2 border-sky-200 p-4 sm:p-5 rounded-2xl text-center relative overflow-hidden">
-            <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-sky-700 block mb-1">
-              Nomor Surat Yang Diterbitkan
+          <div className="bg-slate-50 border border-slate-200 p-4 rounded-xl text-center">
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-500 block mb-1">
+              Nomor Surat Otomatis
             </span>
-            <div className="text-base sm:text-2xl font-mono font-black text-slate-900 tracking-tight my-2 break-all">
+            <div className="text-base sm:text-lg font-mono font-bold text-slate-900 tracking-tight my-1 break-all">
               {nextNumber}
             </div>
-            
+
             <button
+              type="button"
               onClick={handleCopy}
-              className={`w-full sm:w-auto mt-2 inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl font-bold text-xs sm:text-sm shadow-md transition-all active:scale-95 ${
+              className={`w-full mt-2 inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-lg font-semibold text-xs shadow-xs transition-colors ${
                 copied
                   ? 'bg-emerald-600 text-white'
-                  : 'bg-sky-600 hover:bg-sky-500 text-white'
+                  : 'bg-sky-600 hover:bg-sky-700 text-white'
               }`}
             >
               {copied ? (
                 <>
-                  <Check className="w-4 h-4" />
-                  <span>Berhasil Disalin ke Clipboard!</span>
+                  <Check className="w-3.5 h-3.5" aria-hidden="true" />
+                  <span>Tersalin ke clipboard</span>
                 </>
               ) : (
                 <>
-                  <Copy className="w-4 h-4" />
+                  <Copy className="w-3.5 h-3.5" aria-hidden="true" />
                   <span>Salin Nomor Surat</span>
                 </>
               )}
             </button>
           </div>
 
-          {/* Direct module link button */}
-          <button
-            onClick={handleGoToModule}
-            className="w-full py-3 px-4 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold text-xs flex items-center justify-center gap-2 transition-colors"
-          >
-            <span>Buka Modul & Catat Detail Surat Lengkap</span>
-            <ArrowRight className="w-4 h-4 text-slate-400" />
-          </button>
+          {/* Tombol Aksi Bawah */}
+          <div className="flex items-center justify-between pt-2 border-t border-slate-100 text-xs">
+            <button
+              type="button"
+              onClick={handleGoToModule}
+              className="text-sky-700 hover:text-sky-800 font-medium inline-flex items-center gap-1"
+            >
+              <span>Buka modul pencatatan</span>
+              <ArrowRight className="w-3.5 h-3.5" aria-hidden="true" />
+            </button>
 
-          {/* Notice info */}
-          <div className="flex items-start gap-2 text-[11px] text-slate-500 bg-slate-50 p-3 rounded-xl border border-slate-100">
-            <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-            <p>
-              Nomor surat mengikuti kaidah tata naskah dinas resmi BPS RI Perka BPS No. 12 Tahun 2021 dan Kepka No. 7301 Tahun 2026.
-            </p>
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-3 py-1.5 border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50 font-medium"
+            >
+              Tutup
+            </button>
           </div>
 
         </div>

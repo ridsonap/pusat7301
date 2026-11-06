@@ -11,12 +11,13 @@ import {
   FileSpreadsheet,
   Info
 } from 'lucide-react';
-import { getGasUrl, setGasUrl, testGasConnection, fetchAllFromGas } from '../utils/gasSync';
+import { getGasUrl, setGasUrl, testGasConnection, fetchAllFromGas, type GasModuleData } from '../utils/gasSync';
+import { isValidHttpUrl } from '../utils/validation';
 
 interface SyncModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onDataSynced: (data: any) => void;
+  onDataSynced: (data: Partial<GasModuleData>) => void;
 }
 
 export const SyncModal: React.FC<SyncModalProps> = ({
@@ -41,9 +42,21 @@ export const SyncModal: React.FC<SyncModalProps> = ({
     }
   }, [isOpen]);
 
+  useEffect(() => {
+    if (!isOpen) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', onKey);
+    document.body.style.overflow = 'hidden';
+    return () => { window.removeEventListener('keydown', onKey); document.body.style.overflow = ''; };
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   const handleSaveUrl = () => {
+    if (url.trim() && !isValidHttpUrl(url.trim())) {
+      setTestResult({ status: 'error', message: 'URL harus diawali http(s):// dan valid.' });
+      return;
+    }
     setGasUrl(url);
     setTestResult({ status: 'success', message: 'URL berhasil disimpan.' });
   };
@@ -85,8 +98,8 @@ export const SyncModal: React.FC<SyncModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs">
-      <div className="relative w-full max-w-xl bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs" onClick={onClose}>
+      <div role="dialog" aria-modal="true" aria-label="Koneksi Google Apps Script" className="relative w-full max-w-xl bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden animate-in fade-in zoom-in-95 duration-200" onClick={(e) => e.stopPropagation()}>
         
         {/* Header Modal */}
         <div className="bg-gradient-to-r from-sky-900 via-blue-900 to-indigo-900 text-white p-5 sm:p-6">
@@ -105,7 +118,7 @@ export const SyncModal: React.FC<SyncModalProps> = ({
               </div>
             </div>
 
-            <button
+            <button type="button"
               onClick={onClose}
               className="p-2 text-white/70 hover:text-white hover:bg-white/10 rounded-xl transition-colors"
             >
@@ -164,7 +177,7 @@ export const SyncModal: React.FC<SyncModalProps> = ({
 
           {/* Buttons */}
           <div className="flex flex-wrap items-center gap-2 pt-2">
-            <button
+            <button type="button"
               onClick={handleTestConnection}
               disabled={isTesting || !url.trim()}
               className="flex-1 py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-all disabled:opacity-50"
@@ -173,7 +186,7 @@ export const SyncModal: React.FC<SyncModalProps> = ({
               <span>{isTesting ? 'Menguji...' : 'Uji Koneksi'}</span>
             </button>
 
-            <button
+            <button type="button"
               onClick={handlePullData}
               disabled={isSyncing || !url.trim()}
               className="flex-1 py-2.5 px-4 bg-sky-600 hover:bg-sky-500 text-white rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 shadow-xs transition-all disabled:opacity-50 active:scale-95"
@@ -189,7 +202,7 @@ export const SyncModal: React.FC<SyncModalProps> = ({
               <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-600" />
               File skrip: <code className="font-mono text-slate-700 bg-slate-100 px-1 py-0.5 rounded">google-apps-script/Code.gs</code>
             </span>
-            <button
+            <button type="button"
               onClick={() => {
                 alert('Silakan buka file "google-apps-script/README.md" pada proyek ini untuk langkah deployment Apps Script.');
               }}
