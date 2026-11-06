@@ -96,9 +96,11 @@ export const generateNomorSuratTugas = (nomorUrut: number | string, kodeKlasifik
 };
 
 export const generateNomorSK = (nomorUrut: number | string, tahun: number = new Date().getFullYear()): string => {
-  const s = String(nomorUrut).trim();
-  const padded = /^\d+$/.test(s) ? s.padStart(3, '0') : s;
-  return `${padded} TAHUN ${tahun}`;
+  const s = String(nomorUrut ?? '').trim();
+  const parts = s.split('.');
+  const basePart = parts[0].padStart(3, '0');
+  const formattedNo = parts.length > 1 ? `${basePart}.${parts.slice(1).join('.')}` : basePart;
+  return `${formattedNo} TAHUN ${tahun}`;
 };
 
 export const generateNomorBAST = (nomorUrut: number | string, kodeKlasifikasi: string, tahun: number = new Date().getFullYear()): string => {
@@ -111,6 +113,14 @@ export const generateNomorFormPermintaan = (nomorUrut: number | string, tahun: n
 
 export const generateNomorSuratPPK = (nomorUrut: number | string, kodeKlasifikasi: string = 'PL.300', tahun: number = new Date().getFullYear()): string => {
   return `B-${nomorUrut}/7301/${kodeKlasifikasi}/${tahun}`;
+};
+
+export const parseNomorUrutParts = (val?: number | string): { base: number; sub: number } => {
+  const s = String(val ?? '').trim();
+  const parts = s.split('.');
+  const base = parseInt(parts[0], 10) || 0;
+  const sub = parts[1] ? (parseInt(parts[1], 10) || 0) : 0;
+  return { base, sub };
 };
 
 export const compareNomorUrut = (a: number | string, b: number | string): number => {
@@ -149,17 +159,96 @@ export const computeNextNomorUrut = (
     nomorSK?: string;
     nomorBAST?: string;
   }>,
-  targetYear?: number
-): number => {
-  const yr = targetYear ?? new Date().getFullYear();
-  // Filter khusus untuk tahun target. Jika belum ada data di tahun tsb, mulai dari 1.
-  const yrFiltered = items.filter((item) => extractYearFromItem(item) === yr);
+  targetDateOrYear?: string | number
+): number | string => {
+  let targetDate: string | undefined = undefined;
+  let targetYear = new Date().getFullYear();
 
-  const maxNo = yrFiltered.reduce((max, item) => {
-    const val = parseFloat(String(item.nomorUrut));
-    return !isNaN(val) && val > max ? Math.floor(val) : max;
+  if (typeof targetDateOrYear === 'number') {
+    targetYear = targetDateOrYear;
+  } else if (typeof targetDateOrYear === 'string') {
+    const trimmed = targetDateOrYear.trim();
+    if (/^\d{4}$/.test(trimmed)) {
+      targetYear = parseInt(trimmed, 10);
+    } else if (trimmed) {
+      targetDate = parseTanggalToInputFormat(trimmed);
+      targetYear = getTahunFromTanggal(targetDate, targetYear);
+    }
+  }
+
+  // Filter semua item yang berasal dari tahun kalender yang sama
+  const yearItems = items.filter((item) => extractYearFromItem(item) === targetYear);
+  if (yearItems.length === 0) {
+    return 1;
+  }
+
+  const maxBase = yearItems.reduce((max, item) => {
+    const { base } = parseNomorUrutParts(item.nomorUrut);
+    return Math.max(max, base);
   }, 0);
-  return maxNo + 1;
+
+  // Jika tidak ada targetDate spesifik (hanya tahun), berikan nomor urut integer berikutnya
+  if (!targetDate) {
+    return maxBase + 1;
+  }
+
+  // Ambil hanya item-item yang memiliki tanggal valid
+  const datedItems = yearItems.filter((item) => {
+    if (!item.tanggal || typeof item.tanggal !== 'string' || !item.tanggal.trim()) return false;
+    const d = parseTanggalToInputFormat(item.tanggal);
+    return Boolean(d && d.length === 10);
+  });
+
+  if (datedItems.length === 0) {
+    return maxBase + 1;
+  }
+
+  // Cek apakah terdapat surat yang terbit SETELAH targetDate
+  const futureItems = datedItems.filter((item) => {
+    const d = parseTanggalToInputFormat(item.tanggal);
+    return d > targetDate!;
+  });
+
+  // Jika tidak ada surat setelah targetDate, ini bukan tanggal lampau (penomoran normal berlanjut)
+  if (futureItems.length === 0) {
+    return maxBase + 1;
+  }
+
+  // targetDate adalah tanggal lampau (terdapat surat di tanggal sesudahnya).
+  // Sistem otomatis menyisipkan nomor (misal 201.1, 201.2 atau 257.2)
+  const priorItems = datedItems.filter((item) => {
+    const d = parseTanggalToInputFormat(item.tanggal);
+    return d <= targetDate!;
+  });
+
+  // Jika targetDate lebih lampau dari surat terawal di tahun ini
+  if (priorItems.length === 0) {
+    const minBase = datedItems.reduce((min, item) => {
+      const { base } = parseNomorUrutParts(item.nomorUrut);
+      return Math.min(min, base || min);
+    }, 1);
+    const subs = yearItems
+      .map((item) => parseNomorUrutParts(item.nomorUrut))
+      .filter((p) => p.base === minBase)
+      .map((p) => p.sub);
+    const maxSub = subs.reduce((m, sub) => Math.max(m, sub), 0);
+    return `${minBase}.${maxSub + 1}`;
+  }
+
+  // Cari anchor base tertinggi pada atau sebelum targetDate
+  const anchorBase = priorItems.reduce((max, item) => {
+    const { base } = parseNomorUrutParts(item.nomorUrut);
+    return Math.max(max, base);
+  }, 0) || 1;
+
+  // Cari seluruh sub-nomor yang sudah pernah disisipkan pada anchor base ini di tahun yang sama
+  const subs = yearItems
+    .map((item) => parseNomorUrutParts(item.nomorUrut))
+    .filter((p) => p.base === anchorBase)
+    .map((p) => p.sub);
+
+  const maxSub = subs.reduce((m, sub) => Math.max(m, sub), 0);
+  return `${anchorBase}.${maxSub + 1}`;
 };
 
 import { KODE_KLASIFIKASI_BPS } from '../data/seedData';

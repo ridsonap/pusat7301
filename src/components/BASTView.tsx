@@ -97,16 +97,15 @@ export const BASTView: React.FC<BASTViewProps> = ({
   });
 
   const activeTahun = getTahunFromTanggal(formData.tanggal);
-  const activeNomorUrut = editingId ? formData.nomorUrut : computeNextNomorUrut(bastList, activeTahun);
+  const activeNomorUrut = editingId ? formData.nomorUrut : computeNextNomorUrut(bastList, formData.tanggal);
   const activeNomorBAST = generateNomorBAST(activeNomorUrut, formData.kodeKlasifikasi, activeTahun);
 
   const handleOpenModal = () => {
     setEditingId(null);
     setShowOptionalFields(false);
     const today = new Date().toISOString().slice(0, 10);
-    const yr = getTahunFromTanggal(today);
     setFormData({
-      nomorUrut: String(computeNextNomorUrut(bastList, yr)),
+      nomorUrut: String(computeNextNomorUrut(bastList, today)),
       tanggal: today,
       kodeKlasifikasi: 'VS.330',
       perihal: '',
@@ -529,8 +528,12 @@ export const BASTView: React.FC<BASTViewProps> = ({
               <div className="bg-slate-50 border border-slate-200 p-3 rounded-lg">
                 <div className="flex items-center justify-between mb-1 text-[11px]">
                   <span className="text-slate-500 font-medium">Nomor BAST Otomatis</span>
-                  <span className="font-mono text-emerald-800 font-semibold">
-                    #{activeNomorUrut} • Tahun {activeTahun}
+                  <span className={`font-mono font-semibold px-1.5 py-0.5 rounded text-[10px] ${
+                    String(activeNomorUrut).includes('.')
+                      ? 'bg-amber-100 text-amber-800 border border-amber-200'
+                      : 'text-emerald-800 bg-emerald-50 border border-emerald-200'
+                  }`}>
+                    #{activeNomorUrut} • {String(activeNomorUrut).includes('.') ? 'Sisip' : `Tahun ${activeTahun}`}
                   </span>
                 </div>
                 <div className="text-base font-mono font-bold text-slate-900 tracking-tight">
@@ -550,8 +553,10 @@ export const BASTView: React.FC<BASTViewProps> = ({
                   className="w-full px-3 py-1.5 border border-slate-200 rounded-lg text-xs font-medium bg-white focus:outline-hidden focus:ring-1 focus:ring-emerald-500"
                   required
                 />
-                <p className="text-[10px] text-slate-400 mt-0.5">
-                  Nomor urut otomatis dimulai dari 1 saat tahun berganti.
+                <p className="text-[10px] text-slate-500 mt-0.5">
+                  {String(activeNomorUrut).includes('.')
+                    ? '⚡ Terdeteksi tanggal lampau: nomor otomatis menyelip (misal 201.1).'
+                    : 'Nomor urut sesuai tanggal. Reset ke 1 saat tahun berganti.'}
                 </p>
               </div>
 

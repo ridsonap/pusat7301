@@ -70,10 +70,11 @@ export const QuickNumberModal: React.FC<QuickNumberModalProps> = ({
 
   const tahun = getTahunFromTanggal(tanggal);
 
-  // Hitung nomor urut berikutnya secara dinamis berdasarkan tahun yang dipilih
-  let activeNomor = 1;
+  // Hitung nomor urut berikutnya secara dinamis berdasarkan tanggal & tahun yang dipilih
+  // Jika memilih tanggal lampau, otomatis menghasilkan nomor sisip (misal 201.1 atau 257.2)
+  let activeNomor: number | string = 1;
   if (itemsMap && itemsMap[kategori]) {
-    activeNomor = computeNextNomorUrut(itemsMap[kategori], tahun);
+    activeNomor = computeNextNomorUrut(itemsMap[kategori], tanggal);
   } else {
     activeNomor = (counts[kategori] || 0) + 1;
   }
@@ -201,8 +202,10 @@ export const QuickNumberModal: React.FC<QuickNumberModalProps> = ({
               </label>
               <div className="flex items-center justify-between px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-mono text-slate-700">
                 <span className="font-bold text-sky-700">#{activeNomor}</span>
-                <span className="text-[10px] text-slate-500 font-sans">
-                  Tahun {tahun}
+                <span className={`text-[10px] font-sans font-medium px-1.5 py-0.2 rounded ${
+                  String(activeNomor).includes('.') ? 'bg-amber-100 text-amber-800' : 'text-slate-500'
+                }`}>
+                  {String(activeNomor).includes('.') ? 'Sisip' : `Tahun ${tahun}`}
                 </span>
               </div>
             </div>

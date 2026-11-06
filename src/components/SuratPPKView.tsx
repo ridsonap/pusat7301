@@ -86,20 +86,19 @@ export const SuratPPKView: React.FC<SuratPPKViewProps> = ({
     perihal: ''
   });
 
-  // Hitung nomor urut dan tahun dinamis berdasarkan tanggal (reset ke 1 jika tahun berganti)
+  // Hitung nomor urut dan tahun dinamis berdasarkan tanggal (reset ke 1 jika tahun berganti, sisip jika tanggal lampau)
   const activeTahun = getTahunFromTanggal(formData.tanggal);
   const activeNomorUrut = editingId
     ? formData.nomorUrut
-    : computeNextNomorUrut(ppkList, activeTahun);
+    : computeNextNomorUrut(ppkList, formData.tanggal);
   const activeNomorSurat = generateNomorSuratPPK(activeNomorUrut, formData.kodeKlasifikasi, activeTahun);
 
   const handleOpenModal = () => {
     setEditingId(null);
     setShowOptionalFields(false);
     const today = new Date().toISOString().slice(0, 10);
-    const yr = getTahunFromTanggal(today);
     setFormData({
-      nomorUrut: String(computeNextNomorUrut(ppkList, yr)),
+      nomorUrut: String(computeNextNomorUrut(ppkList, today)),
       tanggal: today,
       jenisSurat: 'Eksternal',
       tujuan: '',
@@ -515,8 +514,12 @@ export const SuratPPKView: React.FC<SuratPPKViewProps> = ({
               <div className="bg-slate-50 border border-slate-200 p-3 rounded-lg">
                 <div className="flex items-center justify-between mb-1 text-[11px]">
                   <span className="text-slate-500 font-medium">Nomor Surat PPK</span>
-                  <span className="font-mono text-sky-700 font-semibold">
-                    #{activeNomorUrut} • Tahun {activeTahun}
+                  <span className={`font-mono font-semibold px-1.5 py-0.5 rounded text-[10px] ${
+                    String(activeNomorUrut).includes('.')
+                      ? 'bg-amber-100 text-amber-800 border border-amber-200'
+                      : 'text-sky-700 bg-sky-50 border border-sky-200'
+                  }`}>
+                    #{activeNomorUrut} • {String(activeNomorUrut).includes('.') ? 'Sisip' : `Tahun ${activeTahun}`}
                   </span>
                 </div>
                 <div className="text-base font-mono font-bold text-slate-900 tracking-tight">
@@ -536,8 +539,10 @@ export const SuratPPKView: React.FC<SuratPPKViewProps> = ({
                   className="w-full px-3 py-1.5 border border-slate-200 rounded-lg text-xs font-medium bg-white focus:outline-hidden focus:ring-1 focus:ring-sky-500"
                   required
                 />
-                <p className="text-[10px] text-slate-400 mt-0.5">
-                  Nomor urut otomatis dimulai dari 1 saat tahun berganti.
+                <p className="text-[10px] text-slate-500 mt-0.5">
+                  {String(activeNomorUrut).includes('.')
+                    ? '⚡ Terdeteksi tanggal lampau: nomor otomatis menyelip (misal 201.1).'
+                    : 'Nomor urut sesuai tanggal. Reset ke 1 saat tahun berganti.'}
                 </p>
               </div>
 
